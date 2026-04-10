@@ -2,6 +2,7 @@ name: payu
 channels:
   - accessnri
   - conda-forge
+  - defaults
 dependencies:
   - python==3.10
   - accessnri::payu==1.2.1
