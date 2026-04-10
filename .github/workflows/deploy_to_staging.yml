@@ -100,8 +100,8 @@ jobs:
           date=$(TZ='Australia/Sydney' date '+%FT%T %Z')
           echo "date=$date" >> "$GITHUB_OUTPUT"
 
-  get-changed-environments:
-    name: Get changed environments
+  get-environments:
+    name: Get environments
     runs-on: ubuntu-latest
     needs: [parse_changed_files, sanity_checks]
     outputs:
@@ -136,184 +136,177 @@ jobs:
           fi
           echo "dev_envs=$dev_envs" >> $GITHUB_OUTPUT
           echo "stable_envs=$stable_envs" >> $GITHUB_OUTPUT
-          echo "Changed DEVELOPMENT envs: $dev_envs"
-          echo "Changed STABLE envs: $stable_envs"
 
-#   set_version_dev:
-#     name: Set version for DEVELOPMENT environments
-#     runs-on: ubuntu-latest
-#     needs: get-changed-environments
-#     outputs:
-#       version: ${{ steps.set-version.outputs.version }}
-#     # Only run if there are envs to deploy
-#     if: needs.get-changed-environments.outputs.dev_envs != '[]'
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v6
+  set_version_dev:
+    name: Set version for DEVELOPMENT environments
+    runs-on: ubuntu-latest
+    needs: get-environments
+    outputs:
+      version: ${{ steps.set-version.outputs.version }}
+    # Only run if there are envs to deploy
+    if: needs.get-environments.outputs.dev_envs != '[]'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
 
-#       - name: Set version
-#         id: set-version
-#         uses: ./.github/actions/set_version
-#         with:
-#           is_stable: false
+      - name: Set version
+        id: set-version
+        uses: ./.github/actions/set_version
+        with:
+          is_stable: false
   
-#   set_version_stable:
-#     name: Set version for STABLE environments
-#     runs-on: ubuntu-latest
-#     needs: get-changed-environments
-#     outputs:
-#       version: ${{ steps.set-version.outputs.version }}
-#     # Only run if there are envs to deploy
-#     if: needs.get-changed-environments.outputs.stable_envs != '[]'
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v6
+  set_version_stable:
+    name: Set version for STABLE environments
+    runs-on: ubuntu-latest
+    needs: get-environments
+    outputs:
+      version: ${{ steps.set-version.outputs.version }}
+    # Only run if there are envs to deploy
+    if: needs.get-environments.outputs.stable_envs != '[]'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
 
-#       - name: Set version
-#         id: set-version
-#         uses: ./.github/actions/set_version
-#         with:
-#           is_stable: true
+      - name: Set version
+        id: set-version
+        uses: ./.github/actions/set_version
+        with:
+          is_stable: true
 
-#   deploy_development_staging:
-#     name: Deploy DEVELOPMENT ${{ matrix.environment }} environment to STAGING
-#     needs: [sanity_checks, get-changed-environments, set_version_dev]
-#     strategy:
-#       matrix:
-#         environment: ${{ fromJson(needs.get-changed-environments.outputs.dev_envs) }}
-#     uses: ./.github/workflows/deploy_env.yml
-#     with:
-#       environment: "${{ matrix.environment }}"
-#       # We prepend `dev-` to the version of a DEVELOPMENT environment
-#       version: "${{ needs.set_version_dev.outputs.version }}"
-#       staging: true
-#       production: false
-#       is_stable: false
-#     secrets: inherit
+  deploy_development_staging:
+    name: Deploy DEVELOPMENT ${{ matrix.environment }} environment to STAGING
+    needs: [get-environments, set_version_dev]
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.get-environments.outputs.dev_envs) }}
+    uses: ./.github/workflows/deploy_env.yml
+    with:
+      environment: "${{ matrix.environment }}"
+      # We prepend `dev-` to the version of a DEVELOPMENT environment
+      version: "${{ needs.set_version_dev.outputs.version }}"
+      staging: true
+      production: false
+      is_stable: false
+    secrets: inherit
   
-#   deploy_stable_staging:
-#     name: Deploy STABLE ${{ matrix.environment }} environment to STAGING
-#     needs: [sanity_checks, get-changed-environments, set_version_stable]
-#     strategy:
-#       matrix:
-#         environment: ${{ fromJson(needs.get-changed-environments.outputs.stable_envs) }}
-#     uses: ./.github/workflows/deploy_env.yml
-#     with:
-#       environment: "${{ matrix.environment }}"
-#       version: "${{ needs.set_version_stable.outputs.version }}"
-#       staging: true
-#       production: false
-#       is_stable: true
-#     secrets: inherit
+  deploy_stable_staging:
+    name: Deploy STABLE ${{ matrix.environment }} environment to STAGING
+    needs: [get-environments, set_version_stable]
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.get-environments.outputs.stable_envs) }}
+    uses: ./.github/workflows/deploy_env.yml
+    with:
+      environment: "${{ matrix.environment }}"
+      version: "${{ needs.set_version_stable.outputs.version }}"
+      staging: true
+      production: false
+      is_stable: true
+    secrets: inherit
 
-#   initialise_pr_comment:
-#     runs-on: ubuntu-latest
-#     permissions:
-#       pull-requests: write
-#     needs: 
-#       - sanity_checks
-#       - get-changed-environments
-#       - set_version_dev
-#       - set_version_stable
-#     # Run if neither of the needed job failed but run if any was skipped
-#     if: always() && !failure() && !cancelled()
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v6
+  initialise_pr_comment:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    needs: [set_version_dev,set_version_stable]
+    # Run if at least one of set_version_dev or set_version_stable succeeded and neither failed
+    if: always() && !failure() && !cancelled() && (needs.set_version_dev.result == 'success' || needs.set_version_stable.result == 'success')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
 
-#       - name: Create pr_init_info JSON
-#         id: create-pr-init-info
-#         uses: ./.github/actions/create_pr_init_info_json
+      - name: Create pr_init_info JSON
+        id: create-pr-init-info
+        uses: ./.github/actions/create_pr_init_info_json
 
-#       - name: Set pr-init message
-#         id: set-pr-init-message
-#         uses: ./.github/actions/set_message
-#         with:
-#           message-type: pr-init
-#           data-file: "${{ steps.create-pr-init-info.outputs.output-file }}"
+      - name: Set pr-init message
+        id: set-pr-init-message
+        uses: ./.github/actions/set_message
+        with:
+          message-type: pr-init
+          data-file: "${{ steps.create-pr-init-info.outputs.output-file }}"
 
-#       - name: Comment on PR with deployment information
-#         uses: access-nri/actions/.github/actions/comment@davide/add-message-file
-#         with:
-#           message-file: "${{ steps.set-pr-init-message.outputs.message-file-path }}"
-#           label: ${{ env.COMMENT_LABEL }}
+      - name: Comment on PR with deployment information
+        uses: access-nri/actions/.github/actions/comment@davide/add-message-file
+        with:
+          message-file: "${{ steps.set-pr-init-message.outputs.message-file-path }}"
+          label: ${{ env.COMMENT_LABEL }}
     
-#       - name: Upload pr-init-info JSON as artifact
-#         uses: actions/upload-artifact@v7
-#         with:
-#           path: "${{ steps.create-pr-init-info.outputs.output-file }}"
-#           name: pr-init-info
+      - name: Upload pr-init-info JSON as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          path: "${{ steps.create-pr-init-info.outputs.output-file }}"
+          name: pr-init-info
   
-#   update_pr_comment:
-#     runs-on: ubuntu-latest
-#     permissions:
-#       pull-requests: write
-#     needs: [get-date, deploy_development_staging, deploy_stable_staging]
-#     # Run also if any needed job failed or was skipped
-#     if: always() && !cancelled()
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v6
+  update_pr_comment:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    needs: [get-date, deploy_development_staging, deploy_stable_staging, initialise_pr_comment]
+    # Run if initialise_pr_comment is successful
+    if: always() && !cancelled() && needs.initialise_pr_comment.result == 'success'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
 
-#       - name: Download all hpc target deployment info artifacts
-#         uses: actions/download-artifact@v8
-#         id: download-artifacts
-#         with:
-#           pattern: deployment_*
-#           merge-multiple: true
-#           path: downloaded_artifacts
+      - name: Download all hpc target deployment info artifacts
+        uses: actions/download-artifact@v8
+        id: download-artifacts
+        with:
+          pattern: deployment_*
+          merge-multiple: true
+          path: downloaded_artifacts
       
-#       - name: Create all_deployments_info JSON
-#         id: create-all-deployments-info
-#         uses: ./.github/actions/create_all_deployments_info_json
-#         with:
-#           started-at: "${{ needs.get-date.outputs.date }}"
-#           hpc-target-deployment-info-json-dir: "${{ steps.download-artifacts.outputs.download-path }}"
+      - name: Create all_deployments_info JSON
+        id: create-all-deployments-info
+        uses: ./.github/actions/create_all_deployments_info_json
+        with:
+          started-at: "${{ needs.get-date.outputs.date }}"
+          hpc-target-deployment-info-json-dir: "${{ steps.download-artifacts.outputs.download-path }}"
 
-#       - name: Set PR message
-#         id: set-pr-message
-#         uses: ./.github/actions/set_message
-#         with:
-#           message-type: pr-update
-#           data-file: "${{ steps.create-all-deployments-info.outputs.output-file }}"
+      - name: Set PR message
+        id: set-pr-message
+        uses: ./.github/actions/set_message
+        with:
+          message-type: pr-update
+          data-file: "${{ steps.create-all-deployments-info.outputs.output-file }}"
 
-#       - name: Comment on PR with deployment information
-#         uses: access-nri/actions/.github/actions/comment@davide/add-message-file
-#         with:
-#           message-file: "${{ steps.set-pr-message.outputs.message-file-path }}"
-#           label: ${{ env.COMMENT_LABEL }}
+      - name: Comment on PR with deployment information
+        uses: access-nri/actions/.github/actions/comment@davide/add-message-file
+        with:
+          message-file: "${{ steps.set-pr-message.outputs.message-file-path }}"
+          label: ${{ env.COMMENT_LABEL }}
     
-#       - name: Upload all_deployments_info JSON as artifact
-#         uses: actions/upload-artifact@v7
-#         with:
-#           path: "${{ steps.create-all-deployments-info.outputs.output-file }}"
-#           name: all_deployments_info
+      - name: Upload all_deployments_info JSON as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          path: "${{ steps.create-all-deployments-info.outputs.output-file }}"
+          name: all_deployments_info
   
-#   update_pr_when_cancelled:
-#     runs-on: ubuntu-latest
-#     permissions:
-#       pull-requests: write
-#     needs: [get-date, initialise_pr_comment, deploy_development_staging, deploy_stable_staging]
-#     # Run if the workflow was cancelled
-#     # And only if initialise_pr_comment is successful, otherwise we won't have the pr_init_info artifact
-#     if: cancelled() && needs.initialise_pr_comment.result == 'success'
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v6
+  update_pr_when_cancelled:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    needs: [get-date, initialise_pr_comment, deploy_development_staging, deploy_stable_staging]
+    # Run if the workflow was cancelled and initialise_pr_comment is successful
+    if: cancelled() && needs.initialise_pr_comment.result == 'success'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
 
-#       - name: Download pr-init-info JSON as artifact
-#         id: download-pr-init-info
-#         uses: actions/download-artifact@v8
+      - name: Download pr-init-info JSON as artifact
+        id: download-pr-init-info
+        uses: actions/download-artifact@v8
 
-#       - name: Set PR message
-#         id: set-pr-message
-#         uses: ./.github/actions/set_message
-#         with:
-#           message-type: pr-cancelled
-#           data-file: "${{ steps.download-pr-init-info.outputs.download-path }}/pr_init_info.json"
+      - name: Set PR message
+        id: set-pr-message
+        uses: ./.github/actions/set_message
+        with:
+          message-type: pr-cancelled
+          data-file: "${{ steps.download-pr-init-info.outputs.download-path }}/pr_init_info.json"
 
-#       - name: Comment on PR with deployment information
-#         uses: access-nri/actions/.github/actions/comment@davide/add-message-file
-#         with:
-#           message-file: "${{ steps.set-pr-message.outputs.message-file-path }}"
-#           label: ${{ env.COMMENT_LABEL }}
+      - name: Comment on PR with deployment information
+        uses: access-nri/actions/.github/actions/comment@davide/add-message-file
+        with:
+          message-file: "${{ steps.set-pr-message.outputs.message-file-path }}"
+          label: ${{ env.COMMENT_LABEL }}
