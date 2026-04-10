@@ -44,28 +44,7 @@ jobs:
 
       - name: Parse changed files
         id: changed-files
-        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
-        with:
-          predicate-quantifier: 'every'
-          list-files: json
-          filters: |
-            containers:
-              - 'defaults/container/*'
-              - 'environments/*/overrides/container/*'
-            dev_envs:
-              - 'environments/*/environment_dev.yml'
-            stable_envs:
-              - 'environments/**'
-              - '!environments/*/environment_dev.yml'
-              - '!environments/*/overrides/container/container.def'
-            non_envs:
-              - '**'
-              - '!environments/**'
-              - '!defaults/container/*'
-            non_containers:
-              - '**'
-              - '!defaults/container/*'
-              - '!environments/*/overrides/container/*'
+        uses: ./.github/actions/parse_changed_files
 
   sanity_checks:
     name: Sanity checks
