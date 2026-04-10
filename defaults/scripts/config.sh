@@ -60,23 +60,19 @@ else
 fi
 
 ### Export variables needed also when no deployment takes place (e.g., staging files deletion)
-# Manifest file name for easy env version deletion
-export MANIFEST_FILE_NAME=manifest.txt
-
-# Name for the containerised environments root dir
-containerised_envs_root_dir_name=containerised_envs
-# Name of the directory where all apps will be stored
-apps_dir_name=apps
 # Name of the subdirectory where all apps will be stored
-export APPS_DIR="$BASE_DIR/$apps_dir_name"
+export APPS_DIR="$BASE_DIR/$APPS_DIR_NAME"
 # Full path of the directory where the containerised environments infrastructure
 # is stored. It usually contains the executable used for environment
 # management/creation, as well as configuration and files for each different 
 # existing environment
-containerised_envs_root_dir="$APPS_DIR/$containerised_envs_root_dir_name"
+containerised_envs_root_dir="$APPS_DIR/$CONTAINERISED_ENVS_ROOT_DIR_NAME"
 # Path to the directory containing the containerised environment specific version
 export ENV_DIR="$containerised_envs_root_dir/envs/$MODULE_NAME/$MODULE_VERSION"
-
+# Manifest file name for easy env version deletion
+export MANIFEST_FILE_NAME=manifest.txt
+# Manifest file for easy env version deletion
+export MANIFEST_FILE_PATH="$ENV_DIR/$MANIFEST_FILE_NAME"
 
 ### Logic that runs only if a deployment is taking place
 if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING ]]; then
@@ -116,7 +112,7 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
 
     # Absolute path where the environment will be located within the container
     # This path is added as an overlay when overlaying the squashfs to the container
-    export INTERNAL_ENV_DIR=${INTERNAL_ENV_DIR:-"/$containerised_envs_root_dir_name/$MODULE_NAME/$MODULE_VERSION"}
+    export INTERNAL_ENV_DIR=${INTERNAL_ENV_DIR:-"/$CONTAINERISED_ENVS_ROOT_DIR_NAME/$MODULE_NAME/$MODULE_VERSION"}
     # Sanity check on INTERNAL_ENV_DIR being an absolute path
     if [ "$INTERNAL_ENV_DIR" != /* ]; then
         echo "INTERNAL_ENV_DIR must be an absolute path (must start with a forward slash). Got '$INTERNAL_ENV_DIR'" >&2
@@ -127,10 +123,8 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
     # Temporary directory where the environment is created
     export TEMP_ENV_DIR="${TEMP_WORKING_DIR}${INTERNAL_ENV_DIR}"
 
-    # Name of the directory where all module files will be stored
-    all_modules_dir_name=modules
     # Full path of the directory where all module files will be stored
-    export ALL_MODULES_DIR="$BASE_DIR/$all_modules_dir_name"
+    export ALL_MODULES_DIR="$BASE_DIR/$MODULES_DIR_NAME"
     # Full path of the directory where the specific module will be stored
     export MODULE_DIR="$ALL_MODULES_DIR/$MODULE_NAME"
     # Full path of the modulefile
@@ -208,8 +202,6 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
         fi
     fi
     export ENV_FILE="$env_spec_path"
-    # Manifest file for easy env version deletion
-    export MANIFEST_FILE_PATH="$ENV_DIR/$MANIFEST_FILE_NAME"
 
     # Maximum number of DEVELOPMENT environment versions to keep in PRODUCTION simultaneously.
     # If a new deployment causes the total to exceed this limit, the oldest version is deleted.

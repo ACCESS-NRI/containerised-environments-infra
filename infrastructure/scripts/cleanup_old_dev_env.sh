@@ -18,6 +18,6 @@ if [[ "$ENV_TYPE" == DEVELOPMENT ]] && [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]]; 
         msg="Number of '$MODULE_NAME' DEVELOPMENT versions in PRODUCTION greater than '$MAX_DEV_ENV_VERSIONS'. "
         msg+="Cleaning up oldest '$MODULE_NAME' DEVELOPMENT version: $oldest_version"
         echo "$msg"
-        delete_version "$oldest_version_manifest"
+        delete_files_in_manifest "$oldest_version_manifest"
     fi
 fi

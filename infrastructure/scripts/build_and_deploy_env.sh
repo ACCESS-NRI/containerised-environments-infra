@@ -32,7 +32,7 @@ cleanup_env() {
     # _exit_status is initialised within the trap_append function
     if [ $_exit_status -ne 0 ]; then
         echo "Error! Build failed. Cleaning up environment version '$MODULE_NAME/$MODULE_VERSION' related files..." >&2
-        delete_version
+        delete_files_in_manifest
     fi
 }
 trap_append cleanup_env EXIT

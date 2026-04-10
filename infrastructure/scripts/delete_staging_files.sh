@@ -28,14 +28,15 @@ source "$CONFIG"
 if [[ -z "$pr_number" ]]; then
     # If no pr number is provided, only delete the files associated with the current version
     echo "Deleting STAGING files associated to version '$MODULE_VERSION':"
-    delete_version
+    delete_files_in_manifest
 else
-    # If pr number is provided, delete all files associated with the same pr_number
+    # If pr number is provided, delete all files associated with that pr_number
+    # Define regex to find all manifests of env versions associated with the pr_number
     regex=".*/.*-pr${pr_number}[^0-9]*/${MANIFEST_FILE_NAME}$"
     # Find all manifest files of env versions associated with the pr_number
     # and delete all those versions
     while IFS= read -r manifest_file; do
-        delete_version "$manifest_file"
+        delete_files_in_manifest "$manifest_file"
     done < <(
       find "$(dirname "$ENV_DIR")" \
       -type f \
