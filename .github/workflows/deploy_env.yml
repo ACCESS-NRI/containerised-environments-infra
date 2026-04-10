@@ -123,6 +123,9 @@ jobs:
   deploy:
     needs: [sanity_checks, get-date, get-hpc-targets]
     runs-on: ubuntu-latest
+    concurrency:
+      group: "${{ matrix.hpc-target }}-${{ inputs.environment }}-${{ inputs.version }}"
+      cancel-in-progress: true
     strategy:
       matrix:
         hpc-target: ${{ fromJson(needs.get-hpc-targets.outputs.hpc-targets) }}
