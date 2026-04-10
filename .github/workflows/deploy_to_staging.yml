@@ -66,6 +66,19 @@ jobs:
               - '**'
               - '!defaults/container/*'
               - '!environments/*/overrides/container/*'
+      
+      - name: Test
+        run: |
+          echo "Containers changed: ${{ steps.changed-files.outputs.containers }}"
+          echo "Containers changed files: ${{ steps.changed-files.outputs.containers_files }}"
+          echo "DEVELOPMENT env changed: ${{ steps.changed-files.outputs.dev_envs }}"
+          echo "DEVELOPMENT env files: ${{ steps.changed-files.outputs.dev_envs_files }}"
+          echo "STABLE env changed: ${{ steps.changed-files.outputs.stable_envs }}"
+          echo "STABLE env files: ${{ steps.changed-files.outputs.stable_envs_files }}"
+          echo "Non env changed: ${{ steps.changed-files.outputs.non_envs }}"
+          echo "Non env files: ${{ steps.changed-files.outputs.non_envs_files }}"
+          echo "Non container changed: ${{ steps.changed-files.outputs.non_containers }}"
+          echo "Non container files: ${{ steps.changed-files.outputs.non_containers_files }}"
 
   sanity_checks:
     name: Sanity checks
@@ -108,57 +121,36 @@ jobs:
       dev_envs: ${{ steps.get-environments.outputs.dev_envs }}
       stable_envs: ${{ steps.get-environments.outputs.stable_envs }}
     env:
-      DEV_ENVS: ${{ needs.parse_changed_files.outputs.dev_envs }}
       DEV_ENVS_FILES: ${{ needs.parse_changed_files.outputs.dev_envs_files }}
-      STABLE_ENVS: ${{ needs.parse_changed_files.outputs.stable_envs }}
       STABLE_ENVS_FILES: ${{ needs.parse_changed_files.outputs.stable_envs_files }}
+      NON_ENVS: ${{ needs.parse_changed_files.outputs.non_envs }}
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      
+
       - name: Get changed environments
         id: get-environments
         run: |
-          echo "$DEV_ENVS_FILES"
-          echo "$STABLE_ENVS_FILES"
-          echo ${{ fromJSON( needs.parse_changed_files.outputs.dev_envs_files ) }}
-
-#       - name: Get changed environments
-#         id: get-environments
-#         run: |
-#           echo "$DEV_ENVS_FILES"
-#           echo "$STABLE_ENVS_FILES"
-#           echo ${{ fromJSON( needs.parse_changed_files.outputs.dev_envs_files ) }}
-#           dev_envs=[]
-#           stable_envs=[]
-#           if [[ $DEV_ENVS == 'true' ]]; then
-            
-#             dev_envs=$(echo "$DEV_ENVS_FILES" | jq -r '.[].path' | cut -d'/' -f2 | sort -u | jq -c '.[]')
-#           fi
-
-
-#           if [ -z "$env_changes" ]; then
-#             # No changes in the `environments` folder. 
-#             # Deploy a STABLE TEST_ENV environment in STAGING
-#             stable_envs=$(jq -cn --arg e ${{ env.TEST_ENV }} '[$e]')
-#           else
-#             # Get unique environment names that changed
-#             envs=$(
-#               echo "$env_changes" \
-#               | cut -d'/' -f2 \
-#               | sort -u \
-#             )
-#             for env in $envs; do
-#               if echo "$env_changes" | grep -q "^environments/$env/environment_dev.yml"; then
-#                 dev_envs=$(echo "$dev_envs" | jq -c --arg e "$env" '. += [$e]')
-#               else
-#                 stable_envs=$(echo "$stable_envs" | jq -c --arg e "$env" '. += [$e]')
-#               fi
-#             done
-#           fi
-#           echo "dev_envs=$dev_envs" >> $GITHUB_OUTPUT
-#           echo "stable_envs=$stable_envs" >> $GITHUB_OUTPUT
+          # Get DEVELOPMENT environments
+          dev_envs=$(
+            echo "$DEV_ENVS_FILES" | jq -c '[.[] | split("/")[1]] | unique'
+          )
+          # Get STABLE environments
+          stable_envs=$(
+            echo "$STABLE_ENVS_FILES" | jq -c '[.[] | split("/")[1]] | unique'
+          )
+          # If there are changes that don't involve the `environments` folder,
+          # add a vars.TEST_ENV environment to the STABLE ones
+          if [[ $NON_ENVS == true ]]; then
+            stable_envs=$(
+              jq -c "$stable_envs + [\"${{ vars.TEST_ENV }}\"] | unique"
+            )
+          fi
+          echo "dev_envs=$dev_envs" >> $GITHUB_OUTPUT
+          echo "stable_envs=$stable_envs" >> $GITHUB_OUTPUT
+          echo "Changed DEVELOPMENT envs: $dev_envs"
+          echo "Changed STABLE envs: $stable_envs"
 
 #   set_version_dev:
 #     name: Set version for DEVELOPMENT environments
