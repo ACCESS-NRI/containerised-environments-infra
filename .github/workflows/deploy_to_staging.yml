@@ -91,10 +91,6 @@ jobs:
       STABLE_ENVS_FILES: ${{ needs.parse_changed_files.outputs.stable_envs_files }}
       NON_ENVS: ${{ needs.parse_changed_files.outputs.non_envs }}
     steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
       - name: Get changed environments
         id: get-environments
         run: |

@@ -67,12 +67,14 @@ export APPS_DIR="$BASE_DIR/$APPS_DIR_NAME"
 # management/creation, as well as configuration and files for each different 
 # existing environment
 containerised_envs_root_dir="$APPS_DIR/$CONTAINERISED_ENVS_ROOT_DIR_NAME"
+# Path to the directory containing all versions of the containerised environment
+export ENV_DIR="$containerised_envs_root_dir/envs/$MODULE_NAME"
 # Path to the directory containing the containerised environment specific version
-export ENV_DIR="$containerised_envs_root_dir/envs/$MODULE_NAME/$MODULE_VERSION"
+export ENV_VERSION_DIR="$ENV_DIR/$MODULE_VERSION"
 # Manifest file name for easy env version deletion
 export MANIFEST_FILE_NAME=manifest.txt
 # Manifest file for easy env version deletion
-export MANIFEST_FILE_PATH="$ENV_DIR/$MANIFEST_FILE_NAME"
+export MANIFEST_FILE_PATH="$ENV_VERSION_DIR/$MANIFEST_FILE_NAME"
 
 ### Logic that runs only if a deployment is taking place
 if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING ]]; then
@@ -146,7 +148,7 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
 
 
     # Path to the bin directory where all the containerised environment binaries are stored
-    export ENV_BIN_DIR="$ENV_DIR/bin"
+    export ENV_BIN_DIR="$ENV_VERSION_DIR/bin"
 
     # Set launcher script name
     export LAUNCHER_SCRIPT_NAME=launcher.sh
@@ -159,20 +161,20 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
     # This image is automatically built by the build_container_image.yml workflow
     export REPO_CONTAINER_IMAGE_PATH="$DEFAULTS_DIR/container/base_image.sif"
     # Path to the container image to be used at runtime
-    export RUNTIME_CONTAINER_IMAGE_PATH="$ENV_DIR/$(basename "$REPO_CONTAINER_IMAGE_PATH")"
+    export RUNTIME_CONTAINER_IMAGE_PATH="$ENV_VERSION_DIR/$(basename "$REPO_CONTAINER_IMAGE_PATH")"
 
     # Name of the created squashfs file
     export SQSH_FILENAME=overlay.sqsh
     # Full path to the created squashfs file in the temporary directory
     export TEMP_SQSH_FILE_PATH="$TEMP_WORKING_DIR/$SQSH_FILENAME"
     # Full path to the squashfs file
-    export SQSH_FILE_PATH="$ENV_DIR/$SQSH_FILENAME"
+    export SQSH_FILE_PATH="$ENV_VERSION_DIR/$SQSH_FILENAME"
 
 
     # Name of the environment lock file
     env_lock_filename=env_spec_lock.yml
     # Full path to the environment lock file
-    export ENV_LOCK_FILE_PATH="$ENV_DIR/$env_lock_filename"
+    export ENV_LOCK_FILE_PATH="$ENV_VERSION_DIR/$env_lock_filename"
     # Environment specification file
     if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]]; then
         # If the deployment is for PRODUCTION, use the specification lock file produced in the STAGING deployment

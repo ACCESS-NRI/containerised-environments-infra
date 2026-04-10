@@ -4,7 +4,7 @@
 # Only for DEVELOPMENT envs in PRODUCTION
 if [[ "$ENV_TYPE" == DEVELOPMENT ]] && [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]]; then
     env_versions=$(
-        find "$(dirname "$ENV_DIR")" \
+        find "$ENV_DIR" \
         -mindepth 1 -maxdepth 1 \
         -type d \
         -printf '%T+ %p\n' \
