@@ -30,16 +30,8 @@ jobs:
           )
           echo "all-hpc-targets=$targets" >> $GITHUB_OUTPUT
 
-  approval-for-production-deployment:
-    name: Approval for production deployment
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - name: Approval granted
-        run: echo "Production deployment approved."
-
   delete-staging-environments:
-    needs: [get-all-hpc-targets, approval-for-production-deployment]
+    needs: [get-all-hpc-targets]
     runs-on: ubuntu-latest
     strategy:
       matrix:
