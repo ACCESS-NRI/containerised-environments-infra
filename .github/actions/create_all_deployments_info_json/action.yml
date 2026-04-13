@@ -62,8 +62,8 @@ runs:
     - name: Create all_deployments_info JSON
       shell: bash
       env:
-        COMMIT_SHA: ${{ github.sha }}
-        COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+        COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha || github.sha }}
         WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         STARTED_AT: ${{ inputs.started-at }}
         MERGED_JSONS: ${{ steps.merge-jsons.outputs.merged-jsons }}
