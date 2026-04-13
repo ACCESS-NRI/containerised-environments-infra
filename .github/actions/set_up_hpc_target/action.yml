@@ -20,22 +20,20 @@ inputs:
     description: "The GitHub Environment corresponding to the HPC target to set up"
     required: true
   user:
-    description: "Username for SSH access to the HPC target. This should be set in the GitHub Environment specified by 'target-name' input."
+    description: "Username for SSH access to the HPC target."
     required: true
   host:
-    description: "Hostname for SSH access to the HPC target. This should be set in the GitHub Environment specified by 'target-name' input."
+    description: "Hostname for SSH access to the HPC target."
     required: true
   host-data:
-    description: "Hostname for SSH data transfer to the HPC target's data node. This should be set in the GitHub Environment specified by 'target-name' input."
-    required: false
-    default: ""
+    description: "Hostname for SSH data transfer to the HPC target's data node."
+    required: true
   ssh-key:
-    description: "Private SSH key for access to the HPC target. This should be set in the GitHub Environment specified by 'target-name' input."
+    description: "Private SSH key for access to the HPC target."
     required: true
   ssh-key-passphrase:
-    description: "Passphrase for the private SSH key. This should be set in the GitHub Environment specified by 'target-name' input, if the SSH key is protected by a passphrase
+    description: "Passphrase for the private SSH key."
     required: false
-    default: ""
 outputs:
   private-key-path:
     description: "Path to the private SSH key file created in this action for SSH access to the HPC target. This can be used in subsequent steps that require SSH access to the HPC target."
@@ -54,6 +52,7 @@ runs:
           [target-name]="${{ inputs.target-name }}"
           [user]="${{ inputs.user }}"
           [host]="${{ inputs.host }}"
+          [host-data]="${{ inputs.host-data }}"
           [ssh-key]="${{ inputs.ssh-key }}"
         )
         for name in "${!inputs[@]}"; do
@@ -96,22 +95,22 @@ runs:
       id: ssh
       with:
         hosts: |
-          ${{ inputs.HOST }}
-          ${{ inputs.HOST_DATA }}
-        private-key: ${{ inputs.SSH_KEY }}
-        private-key-passphrase: ${{ inputs.SSH_KEY_PASSPHRASE }}
+          ${{ inputs.host }}
+          ${{ inputs.host-data }}
+        private-key: ${{ inputs.ssh-key }}
+        private-key-passphrase: ${{ inputs.ssh-key-passphrase }}
 
     # We create a temporary repository directory on the HPC system and set its path 
     # as a GitHub environment variable that can be used in subsequent steps.
     - name: Create repository directory
       id: create-repo-dir
-      shell: bash -u
+      shell: bash
       run: |
         if [[ ${CONTAINERISED_ENVS_DEBUG:-0} == 1 ]]; then
           set -x
         fi
         repo_path=$(
-          ssh ${{ inputs.USER }}@${{ inputs.HOST }} \
+          ssh ${{ inputs.user }}@${{ inputs.host }} \
           -i ${{ steps.ssh.outputs.private-key-path }} \
           mktemp -d
         )
@@ -156,4 +155,4 @@ runs:
           --exclude=/.git/ \
           --exclude=/.github/ \
           ./ \
-          "${{ inputs.USER }}@${{ inputs.HOST_DATA }}:$REPO_PATH"
+          "${{ inputs.user }}@${{ inputs.host-data }}:$REPO_PATH"

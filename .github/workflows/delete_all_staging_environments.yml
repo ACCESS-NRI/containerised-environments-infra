@@ -68,7 +68,9 @@ jobs:
           target-name: ${{ matrix.hpc-target }}
           user: ${{ secrets.USER }}
           host: ${{ secrets.HOST }}
+          host-data: ${{ secrets.HOST_DATA || secrets.HOST }}
           ssh-key: ${{ secrets.SSH_KEY }}
+          ssh-key-passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
     
       - name: Delete all staging files
         run: |
