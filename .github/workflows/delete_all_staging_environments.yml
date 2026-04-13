@@ -1,0 +1,168 @@
+name: Delete all the STAGING environments
+description: |
+  This workflow deletes the content of all STAGING directories across all available HPC targets.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  # To ensure the removal of all the STAGING environments across all HPC targets, we detect all
+  # available hpc targets by joining together all entries in the `hpc_targets` files (default and overrides)
+  get-all-hpc-targets:
+    runs-on: ubuntu-latest
+    outputs:
+      all-hpc-targets: ${{ steps.get-all-hpc-targets.outputs.all-hpc-targets }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Get all HPC targets
+        id: get-all-hpc-targets
+        run: |
+          # Find all `hpc_targets` files (defaults and overrides)
+          mapfile -t hpc_targets_files < <(
+            find defaults environments/*/overrides -type f -name hpc_targets
+          )
+          # Get all unique HPC targets from the files and set them as a JSON array
+          targets=$(
+            for file in "${hpc_targets_files[@]}"; do cat "$file"; echo; done \
+            | jq -Rcs 'split("\n") | map(select(length > 0)) | map(ascii_downcase) | unique'
+          )
+          echo "all-hpc-targets=$targets" >> $GITHUB_OUTPUT
+
+  approval-for-production-deployment:
+    name: Approval for production deployment
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Approval granted
+        run: echo "Production deployment approved."
+
+  delete-staging-environments:
+    needs: [get-all-hpc-targets, approval-for-production-deployment]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        hpc-target: ${{ fromJson(needs.get-all-hpc-targets.outputs.all-hpc-targets) }}
+      fail-fast: false
+    environment: ${{ matrix.hpc-target }}
+    env:
+      GROUP_OWNER: '${{ vars.GROUP_OWNER }}'
+      OWNER: '${{ vars.OWNER }}'
+      PBS_PROJECT: '${{ vars.PBS_PROJECT }}'
+      PBS_STORAGE: '${{ vars.PBS_STORAGE }}'
+      SINGULARITY_EXE: '${{ vars.SINGULARITY_EXE }}'
+      JQ_EXE: '${{ vars.JQ_EXE }}'
+      STABLE_PRODUCTION_BASE_DIR: '${{ vars.STABLE_PRODUCTION_BASE_DIR }}'
+      ENV_CONFIG_FILENAME: .env_config
+      MODULE_NAME: dummy_name
+      MODULE_VERSION: dummy_version
+      ENV_TYPE: STABLE
+      HPC_TARGET: ${{ matrix.hpc-target }}
+      STARTED_AT: dummy_date
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      
+      - name: Set debug mode
+        run: |
+          # echo "CONTAINERISED_ENVS_DEBUG=${{ runner.debug }}" >> $GITHUB_ENV
+          echo "CONTAINERISED_ENVS_DEBUG=1" >> $GITHUB_ENV
+      
+      # Sanity check that all needed GitHub vars are set for the target GitHub Environment
+      - name: Check GitHub Environment configuration
+        run: |
+          if [[ ${CONTAINERISED_ENVS_DEBUG:-0} == 1 ]]; then
+            set -x
+          fi
+          vars_unset=false
+          vars=(
+            GROUP_OWNER
+            OWNER
+            PBS_PROJECT
+            PBS_STORAGE
+            SINGULARITY_EXE
+            STABLE_PRODUCTION_BASE_DIR
+          )
+          for var in "${vars[@]}"; do
+            if [[ -z "${!var:-}" ]]; then
+              msg="Variable '${var}' is unset or empty in the '${{ matrix.hpc-target }}' GitHub Environment."
+              msg+="Set this variable before re-running this workflow.%0A"
+              msg+="For further information, see the README section 'GitHub Environment Setup'."
+              echo "::error::$msg"
+              vars_unset=true
+            fi
+          done
+          [[ $vars_unset == true ]] && exit 1 || true
+  
+      - name: Set up SSH
+        uses: access-nri/actions/.github/actions/setup-ssh@main
+        id: ssh
+        with:
+          hosts: |
+            ${{ secrets.HOST }}
+            ${{ secrets.HOST_DATA }}
+          private-key: ${{ secrets.SSH_KEY }}
+
+      # We create a temporary repository directory on the HPC system and set its path 
+      # as a GitHub environment variable that can be used in subsequent steps.
+      - name: Create repository directory
+        id: create-repo-dir
+        run: |
+          set -u
+          if [[ ${CONTAINERISED_ENVS_DEBUG:-0} == 1 ]]; then
+            set -x
+          fi
+          repo_path=$(
+            ssh -v ${{ secrets.USER }}@${{ secrets.HOST }} \
+            -i ${{ steps.ssh.outputs.private-key-path }} \
+            mktemp -d
+          )
+          echo "REPO_PATH=$repo_path" >> $GITHUB_ENV
+      
+      # We set the env variable that stores the path to the hpc_target_deployment_info.json file containing information about the
+      # deployment to pass the GitHub runner.
+      # For simplicity, we set this path to be within the REPO_PATH dir that has already been created. This way, the file will
+      # also be deleted at the end of the workflow when we delete the REPO_PATH directory.
+      # We also set the path to the hpc_target_deployment_info.json file on the GitHub runner, which we will use to retrieve
+      # the file from the HPC system and upload it as an artifact at the end of the workflow.
+      - name: Set hpc_target_deployment_info.json path env variable
+        run: |
+          json_name='hpc_target_deployment_info_${{ job.check_run_id }}.json'
+          echo "HPC_TARGET_DEPLOYMENT_INFO_JSON_PATH=$REPO_PATH/$json_name" >> $GITHUB_ENV
+          echo "HPC_TARGET_DEPLOYMENT_INFO_JSON_PATH_ON_GITHUB_RUNNER=${{ github.workspace }}/$json_name" >> $GITHUB_ENV
+
+      # We create the ENV_CONFIG_FILENAME bash script that exports multiple configuration 
+      # env variables when sourced. 
+      # This will allow us to source the script in any following step to have the CI environment 
+      # ready within the HPC system.
+      - name: Set configuration env script
+        run: bash infrastructure/scripts/write_env_exports.sh
+
+      - name: Sync repository to HPC system
+        id: sync-repo
+        run: |
+          set -euo pipefail
+          if [[ ${CONTAINERISED_ENVS_DEBUG:-0} == 1 ]]; then
+            set -x
+          fi
+          rsync -e 'ssh -i ${{ steps.ssh.outputs.private-key-path }}' \
+            -avz \
+            --delete \
+            --exclude=/.git/ \
+            --exclude=/.github/ \
+            ./ \
+            "${{ secrets.USER }}@${{ secrets.HOST_DATA }}:$REPO_PATH"
+    
+      - name: Delete all staging files
+        run: |
+          ssh ${{ secrets.USER }}@${{ secrets.HOST }} -i ${{ steps.ssh.outputs.private-key-path }} /bin/bash <<EOT
+            set -euo pipefail
+            if [[ ${CONTAINERISED_ENVS_DEBUG:-0} == 1 ]]; then
+              set -x
+            fi
+            # Set configuration environment
+            source '$REPO_PATH/${{ env.ENV_CONFIG_FILENAME }}'
+            # Delete staging files
+            "\$INFRA_SCRIPTS_DIR/delete_staging_files.sh" --all
+          EOT

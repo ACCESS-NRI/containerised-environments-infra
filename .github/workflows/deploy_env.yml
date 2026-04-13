@@ -60,6 +60,16 @@ jobs:
             echo "::error::'staging' input must be true when 'production' is true."
             exit 1
           fi
+  
+  approval-for-production-deployment:
+    name: Approval for production deployment
+    runs-on: ubuntu-latest
+    environment: production
+    needs: sanity_checks
+    if: inputs.production == true
+    steps:
+      - name: Approval granted
+        run: echo "Production deployment approved."
 
   get-date:
     name: Get current date
@@ -101,8 +111,7 @@ jobs:
           fi
           # Get unique HPC targets from the file and set as output in JSON array format
           targets=$(
-            jq -Rcs 'split("\n") | map(select(length > 0)) | unique' \
-              "$hpc_targets_file"
+            jq -Rcs 'split("\n") | map(select(length > 0)) | map(ascii_downcase) | unique' "$hpc_targets_file"
           )
           echo "hpc-targets=$targets" >> $GITHUB_OUTPUT
           echo "hpc-targets-file=$hpc_targets_file" >> $GITHUB_OUTPUT
@@ -121,7 +130,7 @@ jobs:
           done
 
   deploy:
-    needs: [sanity_checks, get-date, get-hpc-targets]
+    needs: [sanity_checks, approval-for-production-deployment, get-date, get-hpc-targets]
     runs-on: ubuntu-latest
     concurrency:
       group: "${{ matrix.hpc-target }}-${{ inputs.environment }}-${{ inputs.version }}"
