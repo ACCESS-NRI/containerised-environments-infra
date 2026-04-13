@@ -158,3 +158,11 @@ jobs:
             # Delete staging files
             "\$INFRA_SCRIPTS_DIR/delete_staging_files.sh" --all
           EOT
+    
+      - name: Delete repository on HPC system
+        if: always() && steps.sync-repo.outcome == 'success'
+        run: |
+          ssh ${{ secrets.USER }}@${{ secrets.HOST }} \
+            -i ${{ steps.ssh.outputs.private-key-path }} /bin/bash <<EOT
+            rm -rf '$REPO_PATH'
+          EOT
