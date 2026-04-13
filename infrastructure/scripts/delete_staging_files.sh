@@ -25,11 +25,7 @@ fi
 if [[ "$#" -gt 1 ]]; then
     echo "Error: too many parameters."
     exit 1
-elif [[ ${1:-} == "--all" ]]; then
-    delete_all=1
-elif [[ ${1:-0} =~ ^[0-9]+$ ]]; then # We use 0 as a non-set argument, because PRs would never have the number 0
-    pr_number="$1"
-else
+elif [[ ${1:-} != '--all' && ! ${1:-0} =~ ^[0-9]+$ ]]; then
     echo "Error: invalid parameter. Please provide either a PR number or the '--all' flag."
     exit 1
 fi
@@ -38,11 +34,11 @@ fi
 source "$CONFIG"
 
 # Delete module files
-if [[ "${pr_number:-0}" == 0 ]]; then
+if [[ -z "${1:-}" ]]; then
     # No arguments are provided: only delete the files associated with the current version
     echo "Deleting STAGING files associated to version '$MODULE_VERSION':"
     delete_files_in_manifest
-elif [[ "${delete_all:-0}" == 1 ]]; then
+elif [[ "${1:-}" == '--all' ]]; then
     # If --all flag is provided, delete all files in the staging directories
     # We perform an extra check to avoid runing the rm command with empty variables
     if [[ -z "$STABLE_STAGING_BASE_DIR" ]]; then
