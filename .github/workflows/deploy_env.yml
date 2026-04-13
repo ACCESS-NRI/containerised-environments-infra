@@ -132,6 +132,8 @@ jobs:
   deploy:
     needs: [sanity_checks, approval-for-production-deployment, get-date, get-hpc-targets]
     runs-on: ubuntu-latest
+    #  Also run if approval-for-production-deployment is skipped (i.e., when inputs.production is false)
+    if: always() && !cancelled() && needs.approval-for-production-deployment.result != 'failure'
     concurrency:
       group: "${{ matrix.hpc-target }}-${{ inputs.environment }}-${{ inputs.version }}"
       cancel-in-progress: true

@@ -35,14 +35,14 @@ runs:
       run: |
         # Make sure the directory exists
         if [[ ! -d "$JSON_DIR" ]]; then
-          echo ":error:Directory '$JSON_DIR' does not exist."
+          echo "::error::Directory '$JSON_DIR' does not exist."
           exit 1
         fi
         # Find all JSON files in the JSON directory
         mapfile -t json_files < <(find "$JSON_DIR" -maxdepth 1 -name "*.json" -type f)
         # Make sure at least one file is found
         if [[ ${#json_files[@]} -eq 0 ]]; then
-          echo ":error:No JSON files found in '$JSON_DIR'."
+          echo "::error::No JSON files found in '$JSON_DIR'."
           exit 1
         fi
         # Merge HPC target deployment info JSONs with the same name by concatenating their deployments arrays
