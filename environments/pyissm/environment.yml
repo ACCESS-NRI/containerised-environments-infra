@@ -36,3 +36,5 @@ dependencies:
 
   # If you often use JupyterLab in this env, uncomment:
   - jupyterlab==4.5.0
+
+  - pyissm==0.1.0
