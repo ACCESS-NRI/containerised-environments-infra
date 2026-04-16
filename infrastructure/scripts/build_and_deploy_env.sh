@@ -139,7 +139,11 @@ for exe in "${host_executables[@]}"; do
 done
 
 # Clear the cache to save space
-"$MAMBA_EXE" clean -afy
+"$MAMBA_EXE" clean \
+  -afy \
+  --no-rc \
+  --no-env \
+  --root-prefix "$TEMP_WORKING_DIR"
 
 EOF
 
