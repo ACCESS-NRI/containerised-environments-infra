@@ -1,0 +1,1 @@
+export MAMBA_EXE=/scratch/tm70/dm5220/test_containerised_envs/admin/staging/apps/containerised_envs/micromamba_installation/micromamba
