@@ -23,7 +23,7 @@ jobs:
     if: github.event.pull_request.head.repo.full_name == github.repository
     continue-on-error: true
     steps:
-      - run: exit 1
+      - run: echo "::warning::This PR comes from a fork. This workflow was skipped."
 
   # In general, this workflow should always be "in sync" with the `deploy_env.yml` workflow.
   # This means that for the env deletion and deployment to DEVELOPMENT PRODUCTION, this
