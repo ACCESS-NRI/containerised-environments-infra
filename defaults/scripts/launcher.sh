@@ -84,6 +84,8 @@ squashfs_file='__SQSH_FILE_PATH__'
 
 # Keep LD_LIBRARY_PATH from the host within the container
 export SINGULARITYENV_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
+# Keep the PATH the same as the host within the container
+export SINGULARITYENV_PATH="$PATH"
 
 # Set overlays to use within the container
 # Get the additional overlays
