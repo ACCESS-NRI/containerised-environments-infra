@@ -27,8 +27,18 @@ env:
   JQ_EXE: jq
 
 jobs:
+  # We want to skip this workflow for PRs from forks
+  check_pr_from_fork:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    continue-on-error: true
+    steps:
+      - run: exit 1
+
   create_hpc_target_deployment_info_jsons:
     runs-on: ubuntu-latest
+    needs: check_pr_from_fork
+    if: needs.check_pr_from_fork.result == 'skipped'
     strategy:
       matrix:
         include:
@@ -114,7 +124,8 @@ jobs:
           path: ${{ env.HPC_TARGET_DEPLOYMENT_INFO_JSON }}
   
   create_all_deployments_info:
-    needs: create_hpc_target_deployment_info_jsons
+    needs: [create_hpc_target_deployment_info_jsons, check_pr_from_fork]
+    if: needs.check_pr_from_fork.result == 'skipped'
     runs-on: ubuntu-latest
     env:
       ARTIFACTS_FOLDER: ${{ github.workspace }}/downloaded_artifacts
@@ -186,6 +197,8 @@ jobs:
     
   test_messages_with_pr_init_json:
     runs-on: ubuntu-latest
+    needs: check_pr_from_fork
+    if: needs.check_pr_from_fork.result == 'skipped'
     env:
         HPC_TARGET_DEPLOYMENT_INFO_JSON: ${{ github.workspace }}/pr_init_info.json
     steps:
