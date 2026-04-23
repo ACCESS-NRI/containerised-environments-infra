@@ -1,0 +1,7 @@
+name: payu
+channels:
+  - accessnri
+  - conda-forge
+dependencies:
+  - matplotlib
+  - regional-mom6==1.0.1
