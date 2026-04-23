@@ -4,5 +4,6 @@ channels:
   - conda-forge
 dependencies:
   - matplotlib
+  - esmpy
   - pip:
     - git+https://github.com/COSIMA/regional-mom6.git@rom3_setup
