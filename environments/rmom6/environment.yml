@@ -1,8 +1,9 @@
-name: payu
+name: rmom6
 channels:
   - accessnri
   - conda-forge
 dependencies:
   - matplotlib
   - esmpy
+  - copernicusmarine
   - regional-mom6==1.0.1

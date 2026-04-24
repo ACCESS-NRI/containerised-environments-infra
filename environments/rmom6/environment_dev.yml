@@ -1,9 +1,10 @@
-name: payu-dev
+name: rmom6-dev
 channels:
   - accessnri
   - conda-forge
 dependencies:
   - matplotlib
   - esmpy
+  - copernicusmarine
   - pip:
     - git+https://github.com/COSIMA/regional-mom6.git@rom3_setup
