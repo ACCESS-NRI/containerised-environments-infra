@@ -1,0 +1,177 @@
+name: Redeploy environment to STAGING 
+description: |
+  Triggered by a `!redeploy` comment on an open PR, this workflow re-runs the latest
+  "Deploy envs to STAGING" (deploy_to_staging.yml) worklow for that PR. This is useful when:
+    - A development dependency was updated externally and the environment needs rebuilding,
+      but no changes were made to the PR itself
+    - A transient error occurred during deployment and a retry is needed
+
+on:
+  issue_comment:
+    types: [created]
+
+env:
+  # Name of the workflow to re-run for the redeployment
+  WORKFLOW_NAME: deploy_to_staging.yml
+  MSG_FILE: ${{ github.workspace }}/message
+
+jobs:
+  redeploy:
+    # Only run if:
+    # - the comment is on an open PR
+    # - the comment body is exactly `!redeploy`
+    if: >-
+      github.event.issue.pull_request &&
+      github.event.issue.state == 'open' &&
+      github.event.comment.body == '!redeploy'
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: write
+      pull-requests: write
+      actions: write
+    steps:
+      - name: Check commenter permissions
+        id: check-permissions
+        uses: access-nri/actions/.github/actions/commenter-permission-check@main
+        with:
+          # This means that commenters who use `!redeploy` must have at least `write` perms
+          # in the repository.
+          minimum-permission: write
+    
+      - name: Get latest deployment run
+        id: get-latest-run
+        if: steps.check-permissions.outputs.has-permission == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          failure=
+          # Ge the PR head name
+          pr_head_name=$(gh pr view ${{ github.event.issue.number }} \
+            --repo ${{ github.repository }} \
+            --json headRefName --jq '.headRefName')
+          # Ge the most-recent run
+          read run_id status < <(
+            gh run list \
+            --repo ${{ github.repository }} \
+            --workflow=$WORKFLOW_NAME \
+            --branch $pr_head_name \
+            --limit 1 \
+            --json databaseId,status \
+            --jq '.[0] | "\(.databaseId) \(.status)"'
+          )
+          # Make sure the run is found and completed
+          if [[ "$run_id" == null ]]; then
+            echo "::error::No deployment runs found"
+            failure=no-run
+          elif [[ $status != completed ]]; then
+            echo "::error::The latest deployment run ( ${{ github.server_url }}/${{ github.repository }}/actions/runs/$run_id ) is not completed yet."
+            failure=run-not-completed
+          fi
+          echo "run-id=$run_id" >> "$GITHUB_OUTPUT"
+          echo failure=$failure >> "$GITHUB_OUTPUT"
+
+      - name: Rerun the workflow
+        if: steps.check-permissions.outputs.has-permission == 'true' && steps.get-latest-run.outputs.failure == ''
+        id: rerun
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run rerun ${{ steps.get-latest-run.outputs.run-id }} \
+            --repo ${{ github.repository }}
+      
+      # Set a message to append to the comment if the commenter doesn't have write permissions
+      - name: Set no-write-permissions message
+        if: steps.check-permissions.outputs.has-permission == 'false'
+        id: set-message-no-permissions
+        env:
+          THIS_WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          (
+            echo '' # Blank line to separate this message from the commenter's original comment
+            echo '> [!WARNING]'
+            echo '> **No redeployment has been triggered.**'
+            echo '> **You do not have write access to this repository.**'
+            echo '>'
+            echo '> Only contributors with write access can trigger a redeployment. If you would like ' \
+                 'to request access, please contact one of the repo admins.'
+            echo '> The list of repo admins can be found in the About section at the top-right side of ' \
+                 'this repo's [main page](${{ github.server_url }}/${{ github.repository }}).'
+            echo "> _Comment modified by [this](${THIS_WORKFLOW_URL}) ${{ github.workflow }} workflow run._"
+          ) > "$MSG_FILE"
+      
+      # Set a message to append to the comment if no previous runs are found
+      - name: Set no-run message
+        if: steps.get-latest-run.outputs.failure == 'no-run'
+        id: set-message-no-run
+        env:
+          THIS_WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          (
+            echo '' # Blank line to separate this message from the commenter's original comment
+            echo '> [!WARNING]'
+            echo '> **No redeployment has been triggered.**'
+            echo '> **No previous deployment runs have been found for this PR.**'
+            echo '>'
+            echo "> _Comment modified by [this](${THIS_WORKFLOW_URL}) ${{ github.workflow }} workflow run._"
+          ) > "$MSG_FILE"
+      
+      # Set a message to append to the comment if previous run not completed
+      - name: Set run-not-completed message
+        if: steps.get-latest-run.outputs.failure == 'run-not-completed'
+        id: set-message-run-not-completed
+        env:
+          THIS_WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          DEPLOYMENT_RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ steps.get-latest-run.outputs.run-id }}
+        run: |
+          (
+            echo '' # Blank line to separate this message from the commenter's original comment
+            echo '> [!WARNING]'
+            echo '> **No redeployment has been triggered.**'
+            echo "> **The [latest deployment run](${DEPLOYMENT_RUN}) has not completed yet.**"
+            echo '>'
+            echo "> _Comment modified by [this](${THIS_WORKFLOW_URL}) ${{ github.workflow }} workflow run._"
+          ) > "$MSG_FILE"
+      
+      # Set a message to append to the comment if redeployment triggered successfully
+      - name: Set run-not-completed message
+        if: steps.rerun.outcome == 'success'
+        id: set-message-redeployment-triggered
+        env:
+          THIS_WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          DEPLOYMENT_RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ steps.get-latest-run.outputs.run-id }}
+        run: |
+          (
+            echo '' # Blank line to separate this message from the commenter's original comment
+            echo '> [!TIP]'
+            echo '> **Redeployment has been triggered successfully.**'
+            echo "> For further details, check the [workflow run](${DEPLOYMENT_RUN})."
+            echo '>'
+            echo "> _Comment modified by [this](${THIS_WORKFLOW_URL}) ${{ github.workflow }} workflow run._"
+          ) > "$MSG_FILE"
+
+      # Append a message to the commenter to notify them of the outcome:
+      - name: Append to commenter message
+        uses: access-nri/actions/.github/actions/comment@davide/add-append-comment-feature
+        with:
+          url: ${{ github.event.comment.html_url }}
+          append: true
+          message-file: ${{ env.MSG_FILE }}
+      
+      - name: Set reaction
+        id: set-reaction
+        run: |
+          if (
+            [[ '${{ steps.check-permissions.outputs.has-permission }}' == 'false' ]] || 
+            [[ '${{ steps.get-latest-run.outputs.failure }}' != '' ]]
+          ); then
+            reaction='-1'
+          else
+            reaction=rocket
+          fi
+          echo reaction=$reaction >> "$GITHUB_OUTPUT"
+      
+      - name: React to Comment
+        uses: access-nri/actions/.github/actions/react-to-comment@main
+        with:
+          token: ${{ github.token }}
+          reaction: ${{ steps.set-reaction.outputs.reaction }}
