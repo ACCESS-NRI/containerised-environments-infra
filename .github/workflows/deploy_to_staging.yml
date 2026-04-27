@@ -25,7 +25,7 @@ on:
 
 env:
   TEST_ENV: ${{ vars.TEST_ENV }}
-  COMMENT_LABEL: 'deployment-${{ github.sha }}'
+  COMMENT_LABEL: 'deployment-${{ github.run_id }}-${{ github.run_attempt }}'
 
 jobs:
   parse_changed_files:
