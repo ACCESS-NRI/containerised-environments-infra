@@ -3,7 +3,8 @@ channels:
   - accessnri
   - conda-forge
 dependencies:
-  - matplotlib
-  - esmpy
   - copernicusmarine
+  - esmpy
+  - jupyter
+  - matplotlib
   - regional-mom6==1.0.1

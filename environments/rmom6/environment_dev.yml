@@ -3,8 +3,9 @@ channels:
   - accessnri
   - conda-forge
 dependencies:
-  - matplotlib
-  - esmpy
   - copernicusmarine
+  - esmpy
+  - jupyter
+  - matplotlib
   - pip:
     - git+https://github.com/COSIMA/regional-mom6.git@rom3_setup
