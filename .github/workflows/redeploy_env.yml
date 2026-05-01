@@ -151,7 +151,7 @@ jobs:
 
       # Append a message to the commenter to notify them of the outcome:
       - name: Append to commenter message
-        uses: access-nri/actions/.github/actions/comment@davide/add-append-comment-feature
+        uses: access-nri/actions/.github/actions/comment@main
         with:
           url: ${{ github.event.comment.html_url }}
           append: true

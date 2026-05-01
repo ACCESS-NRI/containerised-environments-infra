@@ -202,7 +202,7 @@ jobs:
           data-file: "${{ steps.create-pr-init-info.outputs.output-file }}"
 
       - name: Comment on PR with deployment information
-        uses: access-nri/actions/.github/actions/comment@davide/add-message-file
+        uses: access-nri/actions/.github/actions/comment@main
         with:
           message-file: "${{ steps.set-pr-init-message.outputs.message-file-path }}"
           label: ${{ env.COMMENT_LABEL }}
@@ -252,7 +252,7 @@ jobs:
           data-file: ${{ steps.create-all-deployments-info.outcome == 'success' && steps.create-all-deployments-info.outputs.output-file || format('{0}/pr_init_info.json', steps.download-pr-init-info.outputs.download-path) }}
 
       - name: Comment on PR with deployment information
-        uses: access-nri/actions/.github/actions/comment@davide/add-message-file
+        uses: access-nri/actions/.github/actions/comment@main
         with:
           message-file: "${{ steps.set-pr-message.outputs.message-file-path }}"
           label: ${{ env.COMMENT_LABEL }}
@@ -287,7 +287,7 @@ jobs:
           data-file: "${{ steps.download-pr-init-info.outputs.download-path }}/pr_init_info.json"
 
       - name: Comment on PR with deployment information
-        uses: access-nri/actions/.github/actions/comment@davide/add-message-file
+        uses: access-nri/actions/.github/actions/comment@main
         with:
           message-file: "${{ steps.set-pr-message.outputs.message-file-path }}"
           label: ${{ env.COMMENT_LABEL }}
