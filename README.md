@@ -57,6 +57,10 @@ The environments are deployed in the following scenarios:
 
 - Each deployment creates an `hpc_target_deployment_info.json` JSON file that contains information about deployments for the specific HPC target. It is used to pass structured information from the HPC deployment to the GitHub runner to be used by later steps.
 
+## GitHub Environments Setup
+
+Add information on GitHub Environments setup ...
+
 ## Note from CMS wiki
 The actual container used as the base of the environment contains only enough components to create a functional environment. The container does not contain its own operating system, instead, it is comprised of a series of empty directories and symlinks. The necessary components of Gadi’s operating systems are bind-mounted in at launch time through the launcher script. Though this does make the environment entirely unportable, which goes against the philosophy of containerisation, the container itself only needs to be constructed once for any given system, and reconstruction is trivial. The advantage of this approach is that the conda environment is separate to the container, and therefore multiple conda environments can be present ‘in’ the same container. This also means that the container can never be out of sync as Gadi’s OS receives updates. This allows us to make modifications to the conda environment after installation that enhance the functionality of the environment.
 

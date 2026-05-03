@@ -28,8 +28,8 @@ stable_staging_base_dir="$admin_dir/staging"
 development_staging_base_dir="$admin_dir/staging/$development_subdir_name"
 # Path to the logs directory
 logs_dir="$admin_dir/logs"
-# Path to the defaults config file
-config="$scripts_dir/config.sh"
+# Path to the install config file
+install_config="$infra_scripts_dir/install_config.sh"
 # Name for the containerised environments root dir
 containerised_envs_root_dir_name=containerised_envs
 # Name of the directory where all apps will be stored
@@ -62,7 +62,7 @@ export DEVELOPMENT_PRODUCTION_BASE_DIR='$development_production_base_dir'
 export STABLE_STAGING_BASE_DIR='$stable_staging_base_dir'
 export DEVELOPMENT_STAGING_BASE_DIR='$development_staging_base_dir'
 export LOGS_DIR='$logs_dir'
-export CONFIG='$config'
+export INSTALL_CONFIG='$install_config'
 export CONTAINERISED_ENVS_ROOT_DIR_NAME='$containerised_envs_root_dir_name'
 export APPS_DIR_NAME='$apps_dir_name'
 export MODULES_DIR_NAME='$modules_dir_name'

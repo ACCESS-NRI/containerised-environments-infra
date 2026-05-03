@@ -6,9 +6,10 @@
 # Prepend environment bin directory (where all launcher symlinks are located) to PATH
 prepend-path PATH "__ENV_BIN_DIR__"
 
-# Set CONDA_PROMPT_MODIFIER
+# The following environment variables are also set in the internal environment activation script, but
+# we set them here as well so they can be also used outside of the internal environment 
+# (e.g., to change the PS1 after the module is loaded)
 setenv CONDA_PROMPT_MODIFIER "__ENV_PROMPT_MODIFIER__"
-# Set CONDA_PREFIX
 setenv CONDA_PREFIX "__INTERNAL_ENV_DIR__"
 
 # Load singularity

@@ -122,7 +122,7 @@ jobs:
           endpoint='repos/{owner}/{repo}/environments'
           for target in $(echo "${{ steps.get-targets.outputs.hpc-targets }}" | jq -r '.[]'); do
             if ! gh api "$endpoint/$target" &> /dev/null; then
-              msg="HPC target '$target' does not exist as a GitHub Environment in this repository.%0A"
+              msg="HPC target '$target' does not exist as a GitHub Environment in this repository. "
               msg+="Please create a GitHub Environment with this name or remove it from the '${{ steps.get-targets.outputs.hpc-targets-file }}' file."
               echo "::error::$msg"
               exit 1

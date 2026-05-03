@@ -18,7 +18,7 @@ fi
 exec &> "$PBS_JOB_LOG_FILE"
 
 # Set configuration env variables
-source "$CONFIG"
+source "$INSTALL_CONFIG"
 
 ### Initialise directories
 # Make sure the target environment directory does not already exist, to avoid accidentally overwriting an existing environment.
@@ -29,13 +29,13 @@ fi
 # Create a trap function that would delete the environment version related files
 # in case the script fails
 cleanup_env() {
-    # _exit_status is initialised within the trap_append function
+    # _exit_status vaiable is initialised within the register_exit_trap_cmd function
     if [ $_exit_status -ne 0 ]; then
         echo "Error! Build failed. Cleaning up environment version '$MODULE_NAME/$MODULE_VERSION' related files..." >&2
         delete_files_in_manifest
     fi
 }
-trap_append cleanup_env EXIT
+register_exit_trap_cmd cleanup_env $TRAP_PRIORITY_LAST
 
 echo 'Initialising directories...'
 mkdir -pv "$ENV_VERSION_DIR"
@@ -47,12 +47,12 @@ mkdir -pv "$(dirname "$TEMP_ENV_DIR")"
 ### CREATE HPC TARGET DEPLOYMENT INFO JSON
 # Set a trap function to update the HPC target deployment info JSON when the script exits
 update_hpc_target_deployment_info() {
-    # _exit_status is initialised within the trap_append function
+    # _exit_status variable is initialised within the register_exit_trap_cmd function
     export SUCCESS=$( [ $_exit_status -eq 0 ] && echo true || echo false )
     # Update the HPC target deployment info JSON
     source "$INFRA_SCRIPTS_DIR/create_hpc_target_deployment_info_json.sh" "$HPC_TARGET_DEPLOYMENT_INFO_JSON_PATH"
 }
-trap_append update_hpc_target_deployment_info EXIT
+register_exit_trap_cmd update_hpc_target_deployment_info $TRAP_PRIORITY_FIRST
 
 
 ### CREATE MANIFEST FILE
@@ -135,7 +135,7 @@ echo ''   # ensure newline after cat output
 
 # Delete executables in host_executables
 for exe in "${host_executables[@]}"; do
-    rm -f "$INTERNAL_ENV_BIN_DIR/\$exe"
+    rm -vf "$INTERNAL_ENV_BIN_DIR/\$exe"
 done
 
 EOF
@@ -237,9 +237,16 @@ echo "Environment lock created to: '$ENV_LOCK_FILE_PATH'"
 ### CLEANUP OLDEST DEVELOPMENT ENV FOR PRODUCTION
 source "$INFRA_SCRIPTS_DIR/cleanup_old_dev_env.sh"
 
-### EXPORT ENV VARIABLES FOR HPC TARGET DEPLOYMENT INFO JSON
+### EXPORT ENV VARIABLES FOR HPC TARGET DEPLOYMENT INFO JSON (update_hpc_target_deployment_info trap function)
 # MODULE_USAGE_INSTRUCTIONS
 export MODULE_USAGE_INSTRUCTIONS="module use $ALL_MODULES_DIR
 module load $MODULE_NAME/$MODULE_VERSION"
 # ENV_LOCK
 export ENV_LOCK=$(cat "$ENV_LOCK_FILE_PATH")
+
+### RUN DEPLOYMENT POST_SCRIPT
+deployment_post_script=$(
+    get_overrides_or_defaults "$DEPLOYMENT_POST_SCRIPT_PATH" \
+    "No deployment post script '${DEPLOYMENT_POST_SCRIPT_PATH#$DEFAULTS_DIR/}' found in the repository's defaults or environment overrides."
+)
+source "$deployment_post_script"

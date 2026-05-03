@@ -152,6 +152,7 @@ jobs:
     name: Deploy DEVELOPMENT ${{ matrix.environment }} environment to STAGING
     needs: [get-environments, set_version_dev]
     strategy:
+      fail-fast: false
       matrix:
         environment: ${{ fromJson(needs.get-environments.outputs.dev_envs) }}
     uses: ./.github/workflows/deploy_env.yml
@@ -168,6 +169,7 @@ jobs:
     name: Deploy STABLE ${{ matrix.environment }} environment to STAGING
     needs: [get-environments, set_version_stable]
     strategy:
+      fail-fast: false
       matrix:
         environment: ${{ fromJson(needs.get-environments.outputs.stable_envs) }}
     uses: ./.github/workflows/deploy_env.yml

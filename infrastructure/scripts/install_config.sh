@@ -1,29 +1,17 @@
-# !!! INFORMATION FOR DEVELOPERS !!!
 # Sourced by 'infrastructure/scripts/build_and_deploy_env.sh' to configure the
 # build and deployment of the containerised environment.
 
-# Some of the variables in this script can be overridden for a specific environment using the
-# 'environments/<env_name>/overrides/scripts/config.sh' file.
-#
-# Overridable variables:
-# - INTERNAL_ENV_DIR --> Absolute path (must start with '/') where the environment will be located within the container
-# - MAMBA_EXE --> Executable used to manage conda environments
-# - ENV_PROMPT_MODIFIER --> The modifier that can be used to change the PS1 prompt after the environment is activated
-# - JQ_EXE --> Executable used to manage JSON files
-# - PYTHONNOUSERSITE --> Default set to true. Set to false to include user local Python packages in the Python environment
-# - PYTHONDONTWRITEBYTECODE --> Default set to 1. Set to 0 to allow Python to write bytecode cache (.pyc files)
-# - HOST_EXECUTABLES --> Comma-separated list of executables not to be symlinked to the launcher script.
-#                        These executables will always run on the host and not inside the container,
-#                        even if they are present in the environment's bin directory.
-# - ADDITIONAL_CONTAINER_OVERLAYS --> Comma-separated list of additional paths to squashfs environments to overlay
-#                                     to the container at runtime, and therefore make available within
-#                                     the container.
-
+# Some of the variables defaults in this script can be overridden for a specific environment using the
+# 'environments/<env_name>/overrides/scripts/default_config.sh' file.
 
 set -euo pipefail
 if [[ "${CONTAINERISED_ENVS_DEBUG:-0}" == 1 ]]; then
     set -x
 fi
+
+# Set named constant priorities for the register_exit_trap_cmd function
+export TRAP_PRIORITY_FIRST=10 # Runs first (Used for setup commands)
+export TRAP_PRIORITY_LAST=90 # Runs last (e.g. used for commands that delete files/folders)
 
 # Set the default DEPLOYMENT_STAGE
 DEPLOYMENT_STAGE=${DEPLOYMENT_STAGE:-}
@@ -95,20 +83,24 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
     export ENV_OVERRIDES_DIR="$env_folder/overrides"
 
     # Source the specific environment configuration
-    env_config_file="${CONFIG/#$DEFAULTS_DIR/$ENV_OVERRIDES_DIR}"
-    [[ -f "$env_config_file"  ]] && source "$env_config_file"
+    default_config_file="$SCRIPTS_DIR/default_config.sh"
+    default_env_config_file=$(
+        get_overrides_or_defaults "$default_config_file" \
+        "No environment configuration script '${default_config_file#$DEFAULTS_DIR/}' found in the repository's defaults or environment overrides."
+    )
+    source "$default_env_config_file"
 
     # Temporary working directory to build the Python environment
     export TEMP_WORKING_DIR="$(mktemp -d)"
     # Clean up temporary directory on exit, but preserve it if there was an error and debugging is enabled
     temp_dir_cleanup() {
-        # _exit_status is initialised within the trap_append function
+        # _exit_status variable is initialised within the register_exit_trap_cmd function
         if [ $_exit_status -eq 0 ] && [[ "${CONTAINERISED_ENVS_DEBUG:-0}" == 1 ]]; then
             echo "Cleaning up temporary directory '$TEMP_WORKING_DIR'"
-            rm -rf "$TEMP_WORKING_DIR"
+            rm -vrf "$TEMP_WORKING_DIR"
         fi
     }
-    trap_append temp_dir_cleanup EXIT
+    register_exit_trap_cmd temp_dir_cleanup $TRAP_PRIORITY_LAST
 
     # Absolute path where the environment will be located within the container
     # This path is added as an overlay when overlaying the squashfs to the container
@@ -154,6 +146,9 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
     export LAUNCHER_SCRIPT_PATH="$ENV_BIN_DIR/$LAUNCHER_SCRIPT_NAME"
     # Path to the defaults launcher script within the repository
     export REPO_LAUNCHER_SCRIPT_PATH="$SCRIPTS_DIR/$LAUNCHER_SCRIPT_NAME"
+
+    # Path of the deployment post script
+    export DEPLOYMENT_POST_SCRIPT_PATH="$SCRIPTS_DIR/deployment_post_script.sh"
 
     # Path to the defaults built container image in the repository.
     # This image is automatically built by the build_container_image.yml workflow
@@ -244,7 +239,7 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
     export ENV_PROMPT_MODIFIER="${ENV_PROMPT_MODIFIER:-"($MODULE_NAME-$MODULE_VERSION) "}"
 
     ### jq initialisation
-    # If the jq executable is not found or not executable, the latest version is installed
+    # If the jq executable is not found or not executable, the latest version is installed in the TEMP_WORKING_DIR directory
     if [ ! -x "$JQ_EXE" ]; then
         if [ -z "$JQ_EXE" ]; then
             echo "jq executable not provided."
@@ -253,10 +248,8 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
         else
             echo "jq executable '$JQ_EXE' is not executable."
         fi
-        # Create a temporary directory for the jq installation and clean it up on exit
-        jq_dir=$(mktemp -d)
-        trap_append "rm -vrf $jq_dir" EXIT
-        JQ_EXE="$jq_dir/jq"
+        # Set JQ_EXE within the environment temporary directory TEMP_WORKING_DIR
+        JQ_EXE="$TEMP_WORKING_DIR/jq"
         jq_download_url='https://github.com/jqlang/jq/releases/latest/download/jq-linux-amd64'
         echo "Installing jq's latest version:"
         curl -L "$jq_download_url" --output "$JQ_EXE"
@@ -297,7 +290,7 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
     # Additional paths to squashfs environments to overlay to the container at runtime using --overlay
     # Different paths should be separated by a comma
     # (e.g., `/path/to/firs/env.sqsh,/path/to/another/environment.sqsh`)
-    # These should be defined in the specific environment's config.sh file if needed.
+    # These should be defined in the specific environment's default_config.sh file if needed.
     export ADDITIONAL_CONTAINER_OVERLAYS="${ADDITIONAL_CONTAINER_OVERLAYS:-""}"
 
 
@@ -307,19 +300,15 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
     # Therefore, their executed version may differ from the environment's installed version.
     # Different executables should be separated by a comma
     # (e.g., `ssh,clear`)
-    # These should be defined in the specific environment's config.sh file if needed.
+    # These should be defined in the specific environment's default_config.sh file if needed.
     default_host_executables="ssh,clear,display"
     export HOST_EXECUTABLES="${HOST_EXECUTABLES:-$default_host_executables}"
-
-    # ### Define any undefined arrays - TODO: modify this logic?
-    # _ARRAYS=(
-    #     rpms_to_remove
-    #     replace_from_apps
-    #     outside_commands_to_include
-    #     outside_files_to_copy
-    #     replace_with_external
-    # )
-    # for var in "${_ARRAYS[@]}"; do
-    #   [[ -z ${!var+x} ]] && declare -a "$var=()"
-    # done
+    
+    # Source the additional environment configuration
+    additional_config_file="$SCRIPTS_DIR/additional_config.sh"
+    additional_env_config_file=$(
+        get_overrides_or_defaults "$additional_config_file" \
+        "No additional environment configuration script '${additional_config_file#$DEFAULTS_DIR/}' found in the repository's defaults or environment overrides."
+    )
+    source "$additional_env_config_file"
 fi

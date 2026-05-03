@@ -107,6 +107,7 @@ jobs:
     # Only run if the PR was merged (not closed without merging)
     if: needs.get-environments.outputs.envs_to_deploy != '[]' && github.event.pull_request.merged == true
     strategy:
+      fail-fast: false
       matrix:
         environment: ${{ fromJson(needs.get-environments.outputs.envs_to_deploy) }}
     uses: ./.github/workflows/deploy_env.yml
@@ -123,6 +124,7 @@ jobs:
     needs: [get-environments]
     if: needs.get-environments.outputs.envs_to_delete != '[]'
     strategy:
+      fail-fast: false
       matrix:
         environment: ${{ fromJson(needs.get-environments.outputs.envs_to_delete) }}
     uses: ./.github/workflows/deploy_env.yml

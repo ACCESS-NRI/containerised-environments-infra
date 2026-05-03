@@ -13,7 +13,8 @@ description: |
   - REPO_PATH: the path to this repository synced on the HPC target
   - HPC_TARGET_DEPLOYMENT_INFO_JSON_PATH: the path to the hpc_target_deployment_info.json file on the HPC target
   - HPC_TARGET_DEPLOYMENT_INFO_JSON_PATH_ON_GITHUB_RUNNER: the path to the hpc_target_deployment_info.json file on the GitHub runner
-  - ENV_CONFIG_FILENAME: the path to the environment configuration script on the HPC target that can be sourced to have the CI environment ready within the HPC system
+  - ENV_CONFIG_FILENAME: the name of the environment configuration script that can be sourced to have the CI environment ready within the HPC system
+    The full path of the environment configuration script on the HPC target is: $REPO_PATH/$ENV_CONFIG_FILENAME
 
 inputs:
   target-name:
@@ -81,8 +82,8 @@ runs:
         )
         for var in "${vars[@]}"; do
           if [[ -z "${!var:-}" ]]; then
-            msg="Variable '${var}' is unset or empty in the '${{ inputs.target-name }}' GitHub Environment."
-            msg+="Set this variable before re-running this workflow.%0A"
+            msg="Variable '${var}' is unset or empty in the '${{ inputs.target-name }}' GitHub Environment. "
+            msg+="Set this variable before re-running this workflow. "
             msg+="For further information, see the README section 'GitHub Environments Setup'."
             echo "::error::$msg"
             vars_unset=true

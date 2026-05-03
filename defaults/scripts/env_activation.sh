@@ -8,9 +8,10 @@ env_bin_path='__INTERNAL_ENV_BIN_DIR__'
 export PATH="$env_bin_path:$PATH"
 # Set CONDA_DEFAULT_ENV
 export CONDA_DEFAULT_ENV="$env_path"
-# Set CONDA_PREFIX
+# The following environment variables are also set in the modulefile, but we set them here as well
+# so they are always set correctly within the internal environment, even if the module is not loaded
+# (e.g., if an environment executable is run using its full path without loading the module)
 export CONDA_PREFIX="$env_path"
-# Set CONDA_PROMPT_MODIFIER
 export CONDA_PROMPT_MODIFIER="__ENV_PROMPT_MODIFIER__"
 
 for file in "$env_path"/conda/activate.d/*.sh; do

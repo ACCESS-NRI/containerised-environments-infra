@@ -31,7 +31,7 @@ elif [[ ${1:-} != '--all' && ! ${1:-0} =~ ^[0-9]+$ ]]; then
 fi
 
 # Set configuration env variables
-source "$CONFIG"
+source "$INSTALL_CONFIG"
 
 # Delete module files
 if [[ -z "${1:-}" ]]; then
@@ -48,7 +48,7 @@ elif [[ "${1:-}" == '--all' ]]; then
         echo "Error: DEVELOPMENT_STAGING_BASE_DIR is empty"
         exit 1
     else
-        rm -rf "$STABLE_STAGING_BASE_DIR"/* "$DEVELOPMENT_STAGING_BASE_DIR"/*
+        rm -vrf "$STABLE_STAGING_BASE_DIR"/* "$DEVELOPMENT_STAGING_BASE_DIR"/*
     fi
 else
     pr_number="$1"

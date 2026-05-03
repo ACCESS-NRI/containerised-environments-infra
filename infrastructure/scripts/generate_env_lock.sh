@@ -7,7 +7,7 @@
 
 # Generate a temporary file for the lock file, and ensure it is removed on exit
 temp_env_lock_file=$(mktemp)
-trap_append "rm -f $temp_env_lock_file" EXIT
+register_exit_trap_cmd "rm -vf $temp_env_lock_file" $TRAP_PRIORITY_LAST
 
 # Generate the environment lock file, remove the 'prefix: ...' line 
 # and set the environment name to $MODULE_NAME-$MODULE_VERSION
