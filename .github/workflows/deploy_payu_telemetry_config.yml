@@ -1,0 +1,193 @@
+name: Deploy payu telemetry config to PRODUCTION
+description: |
+  This workflow deploys payu telemetry config to PRODUCTION.
+  The telemetry config's specification is taken from payu's repository and is deployed to the
+  HPC targets specified in the hpc_targets input.
+
+on:
+  workflow_dispatch:
+    inputs:
+      hpc_targets:
+        description: |
+          "comma-separated list of HPC targets where to deploy payu's telemetry configuration (e.g., gadi,setonix).
+          Each target must match the name of a GitHub Environment defined within this repo.
+        required: true
+        type: string
+
+env:
+  TELEMETRY_CONFIG_NAME: telemetry_config.json
+
+jobs:
+  check-hpc-targets:
+    name: Check HPC targets
+    runs-on: ubuntu-latest
+    outputs:
+      hpc-targets: ${{ steps.set-hpc-targets.outputs.hpc-targets }}
+    env:
+      HPC_TARGETS: ${{ inputs.hpc_targets }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      # Make sure that all HPC targets specified exist as GitHub Environments in the repository
+      - name: Sanity check on HPC targets
+        run: |
+          endpoint='repos/${{ github.repository }}/environments'
+          IFS=',' read -ra hpc_targets <<< "$HPC_TARGETS"
+          for target in "${hpc_targets[@]}"; do
+            if ! gh api "$endpoint/$target" > /dev/null; then
+              msg="HPC target '$target' does not exist as a GitHub Environment in this repository. "
+              msg+="Please create a GitHub Environment with this name or remove it from this workflow's inputs."
+              echo "::error::$msg"
+              exit 1
+            fi
+          done
+      
+      - name: Convert input HPC targets to JSON array
+        id: set-hpc-targets
+        run: |
+          hpc_targets=$(
+            echo "$HPC_TARGETS" | \
+            jq -Rc 'split(",")'
+          )
+          echo "$hpc_targets"
+          echo "hpc-targets=$hpc_targets" >> $GITHUB_OUTPUT
+  
+  # Get the telemetry config template from payu's repository
+  get-telemetry-config-template:
+    needs: check-hpc-targets
+    runs-on: ubuntu-latest
+    env:
+      TELEMETRY_CONFIG_URL: https://raw.githubusercontent.com/payu-org/payu/refs/heads/master/payu/telemetry/telemetry_config.json
+    steps:
+      - name: Get payu telemetry config from payu's repository
+        run: curl -sL $TELEMETRY_CONFIG_URL -o telemetry_config_template.json
+      
+      - name: Upload telemetry config as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: telemetry_config
+          path: telemetry_config_template.json
+
+  approval-for-production-deployment:
+    name: Approval for production deployment
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Approval granted
+        run: echo "Production deployment approved."
+
+  deploy:
+    needs: [check-hpc-targets, get-telemetry-config-template]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: "payu-telemetry-config-deployment-${{ matrix.hpc-target }}"
+      cancel-in-progress: true
+    strategy:
+      matrix:
+        hpc-target: ${{ fromJson(needs.check-hpc-targets.outputs.hpc-targets) }}
+      fail-fast: false
+    environment: ${{ matrix.hpc-target }}
+    env:
+      PAYU_TELEMETRY_URL: ${{ secrets.PAYU_TELEMETRY_URL }}
+      PAYU_TELEMETRY_PROXY_URL: ${{ secrets.PAYU_TELEMETRY_PROXY_URL }}
+      PAYU_TELEMETRY_TOKEN: ${{ secrets.PAYU_TELEMETRY_TOKEN }}
+      PAYU_TELEMETRY_HOSTNAME: ${{ secrets.HPC_NAME }}
+      PAYU_TELEMETRY_CONFIG_PATH: ${{ secrets.PAYU_TELEMETRY_CONFIG_PATH }}
+      HOST: ${{ secrets.HOST }}
+      HOST_DATA: ${{ secrets.HOST_DATA }}
+      SSH_KEY: ${{ secrets.SSH_KEY }}
+      SSH_KEY_PASSPHRASE: ${{ secrets.SSH_KEY_PASSPHRASE }}
+      USER: ${{ secrets.USER }}
+      OWNER: ${{ vars.OWNER }}
+      GROUP_OWNER: ${{ vars.GROUP_OWNER }}
+    steps:
+      # Sanity check that all needed GitHub Environment secrets are non-empty
+    - name: Check GitHub Environment configuration
+      run: |
+        unset=false
+        ## Secrets
+        declare -A secrets
+        secrets=(
+          [PAYU_TELEMETRY_URL]=PAYU_TELEMETRY_URL
+          [PAYU_TELEMETRY_PROXY_URL]=PAYU_TELEMETRY_PROXY_URL
+          [PAYU_TELEMETRY_TOKEN]=PAYU_TELEMETRY_TOKEN
+          [PAYU_TELEMETRY_HOSTNAME]=HPC_NAME
+          [PAYU_TELEMETRY_CONFIG_PATH]=PAYU_TELEMETRY_CONFIG_PATH
+          [HOST]=HOST
+          [SSH_KEY]=SSH_KEY
+          [USER]=USER
+        )
+        for env_var_name in "${!secrets[@]}"; do
+          secret_name="${secrets[$env_var_name]}"
+          if [[ -z "${!env_var_name:-}" ]]; then
+            msg="Secret '${secret_name}' is unset or empty in the '${{ matrix.hpc-target }}' GitHub Environment. "
+            msg+="Set this secret before re-running this workflow. "
+            msg+="For further information, see the README section 'GitHub Environments Setup'."
+            echo "::error::$msg"
+            unset=true
+          fi
+        done
+        ## Variables
+        declare -A variables
+        variables=(
+          [OWNER]=OWNER
+          [GROUP_OWNER]=GROUP_OWNER
+        )
+        for env_var_name in "${!variables[@]}"; do
+          var_name="${variables[$env_var_name]}"
+          if [[ -z "${!env_var_name:-}" ]]; then
+            msg="Variable '${var_name}' is unset or empty in the '${{ matrix.hpc-target }}' GitHub Environment. "
+            msg+="Set this variable before re-running this workflow. "
+            msg+="For further information, see the README section 'GitHub Environments Setup'."
+            echo "::error::$msg"
+            unset=true
+          fi
+        done
+        [[ $unset == true ]] && exit 1 || true
+    
+    - name: Download telemetry config artifact
+      uses: actions/download-artifact@v8
+      id: download-telemetry-config
+      with:
+        name: telemetry_config
+    
+    - name: Interpolate telemetry config template using Jinja2
+      uses: cuchi/jinja2-action@8bd801365a8d36a0b20f45ee969161685de7785a # v1.3.0
+      with:
+        template: "${{ steps.download-telemetry-config.outputs.download-path }}/telemetry_config_template.json"
+        output_file: ${{ env.TELEMETRY_CONFIG_NAME }}
+        strict: true
+
+    - name: Set up SSH
+      uses: access-nri/actions/.github/actions/setup-ssh@main
+      id: set-up-ssh
+      with:
+        hosts: |
+          ${{ env.HOST }}
+          ${{ env.HOST_DATA }}
+        private-key: ${{ env.SSH_KEY }}
+        private-key-passphrase: ${{ env.SSH_KEY_PASSPHRASE }}
+    
+    - name: Create payu telemetry config parent directory
+      run: |
+        ssh $USER@$HOST \
+          -i ${{ steps.set-up-ssh.outputs.private-key-path }} \
+          mkdir -p $(dirname $PAYU_TELEMETRY_CONFIG_PATH)
+    
+    - name: Deploy telemetry config
+      run: |
+        rsync -e 'ssh -i ${{ steps.set-up-ssh.outputs.private-key-path }}' \
+          -avz \
+          $TELEMETRY_CONFIG_NAME \
+          "$USER@${{ env.HOST_DATA || env.HOST }}:$PAYU_TELEMETRY_CONFIG_PATH"
+
+    - name: Set permissions
+      run: |
+        ssh $USER@$HOST \
+          -i ${{ steps.set-up-ssh.outputs.private-key-path }} << EOF
+        set -euo pipefail
+        set -x
+        # Change group ownership
+        chgrp $GROUP_OWNER '$PAYU_TELEMETRY_CONFIG_PATH'
+        # Set read and write permissions to OWNER, read permissions to GROUP_OWNER, and no permissions to others
+        chmod u=rw,g=r,o= '$PAYU_TELEMETRY_CONFIG_PATH'
+        EOF
