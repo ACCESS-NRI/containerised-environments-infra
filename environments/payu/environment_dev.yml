@@ -17,4 +17,4 @@ dependencies:
   - mnctools
   - addmeta
   - pip:
-    - git+https://github.com/payu-org/payu.git@master
+    - git+https://github.com/payu-org/payu.git@davide/725-payu-telemetry-updates
