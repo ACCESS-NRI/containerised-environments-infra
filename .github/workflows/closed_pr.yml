@@ -78,7 +78,7 @@ jobs:
           fi
           # The environments to deploy are the DEVELOPMENT environments without the vars.TEST_ENV environment
           envs_to_deploy=$(
-            echo "$dev_envs" | jq 'map(select(. != "${{ vars.TEST_ENV }}"))'
+            echo "$dev_envs" | jq -c 'map(select(. != "${{ vars.TEST_ENV }}"))'
           )
           echo "envs_to_deploy=$envs_to_deploy" >> $GITHUB_OUTPUT
           echo "envs_to_delete=$envs_to_delete" >> $GITHUB_OUTPUT
