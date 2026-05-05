@@ -23,7 +23,7 @@ jobs:
     if: >-
       github.event.issue.pull_request &&
       github.event.issue.state == 'open' &&
-      github.event.comment.body == '!redeploy'
+      startsWith(github.event.comment.body, '!redeploy')
     runs-on: ubuntu-latest
     permissions:
       statuses: write
