@@ -9,7 +9,7 @@ on:
     inputs:
       hpc_targets:
         description: |
-          "comma-separated list of HPC targets where to deploy payu's telemetry configuration (e.g., gadi,setonix).
+          Comma-separated list of HPC targets where to deploy payu's telemetry configuration (e.g., gadi,setonix).
           Each target must match the name of a GitHub Environment defined within this repo.
         required: true
         type: string
