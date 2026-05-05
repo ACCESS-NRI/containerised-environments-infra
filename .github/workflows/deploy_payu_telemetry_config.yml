@@ -110,44 +110,30 @@ jobs:
     - name: Check GitHub Environment configuration
       run: |
         unset=false
+        # Create function to check the existence of a required variable or secret in the
+        # GitHub Environment, and to print an error message if it does not exist or is empty
+        check() {
+          local type=$1 name=$2 env_var=${3:-$2}
+          if [[ -z "${!env_var:-}" ]]; then
+            msg="The ${type} '${name}' is unset or empty in the '${{ matrix.hpc-target }}' GitHub Environment. "
+            msg+="Set this ${type} before re-running this workflow. "
+            msg+="For further information, see the 'GitHub Environments Setup' README section."
+            echo "::error::$msg"
+            unset=true
+          fi
+        }
         ## Secrets
-        declare -A secrets
-        secrets=(
-          [PAYU_TELEMETRY_URL]=PAYU_TELEMETRY_URL
-          [PAYU_TELEMETRY_PROXY_URL]=PAYU_TELEMETRY_PROXY_URL
-          [PAYU_TELEMETRY_TOKEN]=PAYU_TELEMETRY_TOKEN
-          [PAYU_TELEMETRY_HOSTNAME]=HPC_NAME
-          [PAYU_TELEMETRY_CONFIG_PATH]=PAYU_TELEMETRY_CONFIG_PATH
-          [HOST]=HOST
-          [SSH_KEY]=SSH_KEY
-          [USER]=USER
-        )
-        for env_var_name in "${!secrets[@]}"; do
-          secret_name="${secrets[$env_var_name]}"
-          if [[ -z "${!env_var_name:-}" ]]; then
-            msg="Secret '${secret_name}' is unset or empty in the '${{ matrix.hpc-target }}' GitHub Environment. "
-            msg+="Set this secret before re-running this workflow. "
-            msg+="For further information, see the README section 'GitHub Environments Setup'."
-            echo "::error::$msg"
-            unset=true
-          fi
-        done
+        check PAYU_TELEMETRY_URL
+        check PAYU_TELEMETRY_PROXY_URL
+        check PAYU_TELEMETRY_TOKEN
+        check PAYU_TELEMETRY_HOSTNAME HPC_NAME
+        check PAYU_TELEMETRY_CONFIG_PATH
+        check HOST
+        check SSH_KEY
+        check USER
         ## Variables
-        declare -A variables
-        variables=(
-          [OWNER]=OWNER
-          [GROUP_OWNER]=GROUP_OWNER
-        )
-        for env_var_name in "${!variables[@]}"; do
-          var_name="${variables[$env_var_name]}"
-          if [[ -z "${!env_var_name:-}" ]]; then
-            msg="Variable '${var_name}' is unset or empty in the '${{ matrix.hpc-target }}' GitHub Environment. "
-            msg+="Set this variable before re-running this workflow. "
-            msg+="For further information, see the README section 'GitHub Environments Setup'."
-            echo "::error::$msg"
-            unset=true
-          fi
-        done
+        check OWNER
+        check GROUP_OWNER
         [[ $unset == true ]] && exit 1 || true
     
     - name: Download telemetry config artifact
