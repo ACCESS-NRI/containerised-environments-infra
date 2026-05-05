@@ -188,6 +188,8 @@ jobs:
         set -x
         # Change group ownership
         chgrp $GROUP_OWNER '$PAYU_TELEMETRY_CONFIG_PATH'
-        # Set read and write permissions to OWNER, read permissions to GROUP_OWNER, and no permissions to others
+        # Set read and write permissions to owner, read permissions to GROUP_OWNER, and no permissions to others
         chmod u=rw,g=r,o= '$PAYU_TELEMETRY_CONFIG_PATH'
+        # Set specific acls for OWNER (read and write)
+        setfacl -m u:$OWNER:rw '$PAYU_TELEMETRY_CONFIG_PATH'
         EOF
