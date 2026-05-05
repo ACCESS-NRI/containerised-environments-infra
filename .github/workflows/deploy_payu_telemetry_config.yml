@@ -51,21 +51,27 @@ jobs:
           echo "$hpc_targets"
           echo "hpc-targets=$hpc_targets" >> $GITHUB_OUTPUT
   
-  # Get the telemetry config template from payu's repository
-  get-telemetry-config-template:
+  # Get the telemetry config template and schema from payu's repository
+  get-telemetry-config:
     needs: check-hpc-targets
     runs-on: ubuntu-latest
     env:
       TELEMETRY_CONFIG_URL: https://raw.githubusercontent.com/payu-org/payu/refs/heads/master/payu/telemetry/telemetry_config.json
+      TELEMETRY_SCHEMA_URL: https://raw.githubusercontent.com/payu-org/payu/refs/heads/master/payu/telemetry/telemetry_config.schema.json
     steps:
       - name: Get payu telemetry config from payu's repository
         run: curl -sL $TELEMETRY_CONFIG_URL -o telemetry_config_template.json
       
-      - name: Upload telemetry config as artifact
+      - name: Get payu telemetry schema from payu's repository
+        run: curl -sL $TELEMETRY_SCHEMA_URL -o telemetry_config.schema.json
+      
+      - name: Upload telemetry config and schema as artifact
         uses: actions/upload-artifact@v7
         with:
           name: telemetry_config
-          path: telemetry_config_template.json
+          path: |
+            telemetry_config_template.json
+            telemetry_config.schema.json
 
   approval-for-production-deployment:
     name: Approval for production deployment
@@ -76,7 +82,7 @@ jobs:
         run: echo "Production deployment approved."
 
   deploy:
-    needs: [check-hpc-targets, get-telemetry-config-template, approval-for-production-deployment]
+    needs: [check-hpc-targets, get-telemetry-config, approval-for-production-deployment]
     runs-on: ubuntu-latest
     concurrency:
       group: "payu-telemetry-config-deployment-${{ matrix.hpc-target }}"
@@ -156,6 +162,14 @@ jobs:
         template: "${{ steps.download-telemetry-config.outputs.download-path }}/telemetry_config_template.json"
         output_file: ${{ env.TELEMETRY_CONFIG_NAME }}
         strict: true
+    
+    - name: Validate telemetry config against schema
+      run: |
+        schema="${{ steps.download-telemetry-config.outputs.download-path }}/telemetry_config_schema.json"
+        npx ajv-cli@5.0.0 validate \
+          --spec=draft7 \
+          -s "$schema" \
+          -d "$TELEMETRY_CONFIG_NAME"
 
     - name: Set up SSH
       uses: access-nri/actions/.github/actions/setup-ssh@main
