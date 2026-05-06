@@ -2,12 +2,12 @@ name: Deploy payu telemetry config to PRODUCTION
 description: |
   This workflow deploys payu telemetry config to PRODUCTION.
   The telemetry config's specification is taken from payu's repository and is deployed to the
-  HPC targets specified in the hpc_targets input.
+  HPC targets specified in the hpc-targets input.
 
 on:
   workflow_dispatch:
     inputs:
-      hpc_targets:
+      hpc-targets:
         description: |
           Comma-separated list of HPC targets where to deploy payu's telemetry configuration (e.g., gadi,setonix).
           Each target must match the name of a GitHub Environment defined within this repo.
@@ -24,7 +24,7 @@ jobs:
     outputs:
       hpc-targets: ${{ steps.set-hpc-targets.outputs.hpc-targets }}
     env:
-      HPC_TARGETS: ${{ inputs.hpc_targets }}
+      HPC_TARGETS: ${{ inputs.hpc-targets }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       # Make sure that all HPC targets specified exist as GitHub Environments in the repository
@@ -63,7 +63,7 @@ jobs:
         run: curl -sL $TELEMETRY_CONFIG_URL -o telemetry_config_template.json
       
       - name: Get payu telemetry schema from payu's repository
-        run: curl -sL $TELEMETRY_SCHEMA_URL -o telemetry_config.schema.json
+        run: curl -sL $TELEMETRY_SCHEMA_URL -o telemetry_config_schema.json
       
       - name: Upload telemetry config and schema as artifact
         uses: actions/upload-artifact@v7
@@ -71,7 +71,7 @@ jobs:
           name: telemetry_config
           path: |
             telemetry_config_template.json
-            telemetry_config.schema.json
+            telemetry_config_schema.json
 
 #   approval-for-production-deployment:
 #     name: Approval for production deployment
@@ -113,7 +113,7 @@ jobs:
         # Create function to check the existence of a required variable or secret in the
         # GitHub Environment, and to print an error message if it does not exist or is empty
         check() {
-          local type=$1 name=$2 env_var=${3:-$2}
+          local type=$1 env_var=$2 name=${3:-$2}
           if [[ -z "${!env_var:-}" ]]; then
             msg="The ${type} '${name}' is unset or empty in the '${{ matrix.hpc-target }}' GitHub Environment. "
             msg+="Set this ${type} before re-running this workflow. "
@@ -123,17 +123,17 @@ jobs:
           fi
         }
         ## Secrets
-        check PAYU_TELEMETRY_URL
-        check PAYU_TELEMETRY_PROXY_URL
-        check PAYU_TELEMETRY_TOKEN
-        check PAYU_TELEMETRY_HOSTNAME HPC_NAME
-        check PAYU_TELEMETRY_CONFIG_PATH
-        check HOST
-        check SSH_KEY
-        check USER
+        check secret PAYU_TELEMETRY_URL
+        check secret PAYU_TELEMETRY_PROXY_URL
+        check secret PAYU_TELEMETRY_TOKEN
+        check secret PAYU_TELEMETRY_HOSTNAME HPC_NAME
+        check secret PAYU_TELEMETRY_CONFIG_PATH
+        check secret HOST
+        check secret SSH_KEY
+        check secret USER
         ## Variables
-        check OWNER
-        check GROUP_OWNER
+        check variable OWNER
+        check variable GROUP_OWNER
         [[ $unset == true ]] && exit 1 || true
     
     - name: Download telemetry config artifact
@@ -186,10 +186,12 @@ jobs:
           -i ${{ steps.set-up-ssh.outputs.private-key-path }} << EOF
         set -euo pipefail
         set -x
+        # Reset existing acls
+        setfacl -b '$PAYU_TELEMETRY_CONFIG_PATH'
         # Change group ownership
         chgrp $GROUP_OWNER '$PAYU_TELEMETRY_CONFIG_PATH'
-        # Set read and write permissions to owner, read permissions to GROUP_OWNER, and no permissions to others
-        chmod u=rw,g=r,o= '$PAYU_TELEMETRY_CONFIG_PATH'
+        # Set read and write permissions to owner, read permissions to group, and no permissions to others
+        chmod u=rw-,g=r--,o= '$PAYU_TELEMETRY_CONFIG_PATH'
         # Set specific acls for OWNER (read and write)
-        setfacl -m u:$OWNER:rw '$PAYU_TELEMETRY_CONFIG_PATH'
+        setfacl -m u:$OWNER:rw- '$PAYU_TELEMETRY_CONFIG_PATH'
         EOF
