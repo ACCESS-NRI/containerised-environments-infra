@@ -56,8 +56,8 @@ jobs:
     needs: check-hpc-targets
     runs-on: ubuntu-latest
     env:
-      TELEMETRY_CONFIG_URL: https://raw.githubusercontent.com/payu-org/payu/refs/heads/master/payu/telemetry/telemetry_config.json
-      TELEMETRY_SCHEMA_URL: https://raw.githubusercontent.com/payu-org/payu/refs/heads/master/payu/telemetry/telemetry_config.schema.json
+      TELEMETRY_CONFIG_URL: https://raw.githubusercontent.com/payu-org/payu/refs/heads/davide/725-payu-telemetry-updates/payu/telemetry/telemetry_config.json
+      TELEMETRY_SCHEMA_URL: https://raw.githubusercontent.com/payu-org/payu/refs/heads/davide/725-payu-telemetry-updates/payu/telemetry/telemetry_config.schema.json
     steps:
       - name: Get payu telemetry config from payu's repository
         run: curl -sL $TELEMETRY_CONFIG_URL -o telemetry_config_template.json
@@ -73,16 +73,16 @@ jobs:
             telemetry_config_template.json
             telemetry_config.schema.json
 
-  approval-for-production-deployment:
-    name: Approval for production deployment
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - name: Approval granted
-        run: echo "Production deployment approved."
+#   approval-for-production-deployment:
+#     name: Approval for production deployment
+#     runs-on: ubuntu-latest
+#     environment: production
+#     steps:
+#       - name: Approval granted
+#         run: echo "Production deployment approved."
 
   deploy:
-    needs: [check-hpc-targets, get-telemetry-config, approval-for-production-deployment]
+    needs: [check-hpc-targets, get-telemetry-config]
     runs-on: ubuntu-latest
     concurrency:
       group: "payu-telemetry-config-deployment-${{ matrix.hpc-target }}"
