@@ -27,7 +27,7 @@ if [ "$(basename "$CMD")" == "$original_launcher_script_name" ]; then
     fi
 fi
 
-# If this script gets run within the container,  we should not call another 
+# If this script gets run within the container, we should not call another 
 # singularity container, but only run the command:
 if [ -n "$SINGULARITY_CONTAINER" ]; then
     exec -a "$CMD" "$(basename "$CMD")" "$@"
@@ -67,21 +67,15 @@ export SINGULARITYENV_PYTHONDONTWRITEBYTECODE='__PYTHONDONTWRITEBYTECODE__'
 # Set path to the environment activation script within the container
 export SINGULARITYENV_ENV_ACTIVATION_SCRIPT='__ACTIVATION_SCRIPT_PATH__'
 
+singularity_exe='__SINGULARITY_EXE__'
+
 function singularity_exec () {
-    exec singularity -s run \
+    exec "$singularity_exe" -s run \
       --bind "$bind_str" \
       "$overlay_str" \
       "$container_image_path" \
       "$CMD" "$@"
 }
-
-# Use latest singularity if needed
-if ! command -v singularity &> /dev/null; then
-    singularity_exe='__SINGULARITY_EXE__'
-    echo "Singularity could not be found, using latest singularity executable: $singularity_exe"
-    singularity_dir=$( dirname "$singularity_exe" )
-    export PATH="$singularity_dir:$PATH"
-fi
 
 singularity_exec "$@"
 exit $?
