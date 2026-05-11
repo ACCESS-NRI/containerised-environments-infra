@@ -8,46 +8,6 @@
 # Immediately exit if any command fails
 set -e
 
-### Add some complicated arguments that are never meant to be used by humans
-# declare -a PROG_ARGS=()
-# while [[ $# -gt 0 ]]; do
-#     case "${1}" in 
-#         "--cms_singularity_overlay_path_override")
-#             ### Sometimes we do not want to use the 'correct' container
-#             export CONTAINER_OVERLAY_PATH_OVERRIDE=1
-#             debug_echo "cms_singularity_overlay_path_override=1"
-#             shift
-#             ;;
-#         "--cms_singularity_overlay_path")
-#             ### From time to time we need to manually specify an overlay filesystem, handle that here:
-#             export ADDITIONAL_CONTAINER_OVERLAYS="${2}"
-#             debug_echo "cms_singularity_overlay_path="${ADDITIONAL_CONTAINER_OVERLAYS}
-#             shift 2
-#             ;;
-#         "--cms_singularity_in_container_path")
-#             ### Set path manually
-#             export PATH="${2}"
-#             debug_echo "cms_singularity_in_container_path="${PATH}
-#             shift 2
-#             ;;
-#         "--cms_singularity_launcher_override")
-#             ### Override the launcher script name
-#             export LAUNCHER_SCRIPT="${2}"
-#             debug_echo "cms_singularity_launcher_override="${LAUNCHER_SCRIPT}
-#             shift 2
-#             ;;
-#         "--cms_singularity_singularity_path")
-#             export SINGULARITY_BINARY_PATH="${2}"
-#             $debug "cms_singularity_singularity_path="${SINGULARITY_BINARY_PATH}
-#             shift 2
-#             ;;
-#         *)
-#             PROG_ARGS+=( "${1}" )
-#             shift
-#             ;;
-#     esac
-# done
-
 # name of the original launcher script
 original_launcher_script_name='__LAUNCHER_SCRIPT_NAME__'
 
