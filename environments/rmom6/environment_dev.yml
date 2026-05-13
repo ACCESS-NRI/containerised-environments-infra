@@ -8,4 +8,4 @@ dependencies:
   - jupyter
   - matplotlib
   - pip:
-    - git+https://github.com/COSIMA/regional-mom6.git@rom3_setup
+    - git+https://github.com/COSIMA/regional-mom6.git@5b070219eeaf28495de441e2bcbf1c5cc9cee87c
