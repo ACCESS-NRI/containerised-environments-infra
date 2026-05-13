@@ -264,7 +264,7 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
     # Disable Python's bytecode cache (.pyc files)
     export PYTHONDONTWRITEBYTECODE=${PYTHONDONTWRITEBYTECODE:-1}
 
-    # Set directories to bind to the singularity container using --bind
+    # Set directories to bind to the container using --bind
     bind_dirs=(
         /etc
         /half-root

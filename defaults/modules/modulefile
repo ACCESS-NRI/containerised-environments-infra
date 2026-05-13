@@ -11,6 +11,3 @@ prepend-path PATH "__ENV_BIN_DIR__"
 # (e.g., to change the PS1 after the module is loaded)
 setenv CONDA_PROMPT_MODIFIER "__ENV_PROMPT_MODIFIER__"
 setenv CONDA_PREFIX "__INTERNAL_ENV_DIR__"
-
-# Load singularity
-module load singularity

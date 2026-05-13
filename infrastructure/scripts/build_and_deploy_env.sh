@@ -100,13 +100,10 @@ add_to_bind=(
 # Use printf %q for safety with bash special characters like spaces.
 add_bind_str=$(printf ",%q" "${add_to_bind[@]}")
 
-# Initialise singularity
-module load -v singularity
-
 # Set host_executables as an array
 IFS=',' read -ra host_executables <<< "$HOST_EXECUTABLES"
 
-singularity -s exec \
+"$SINGULARITY_EXE" -s exec \
     --bind "${BIND_STR}${add_bind_str}" \
     "$RUNTIME_CONTAINER_IMAGE_PATH" \
     bash <<EOF
