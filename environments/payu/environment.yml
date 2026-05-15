@@ -14,7 +14,7 @@ dependencies:
   - openssl==3.5.2
   - xarray
   - mule
-  - um2nc
+  - um2nc<2
   - accessnri::yamanifest
   - netcdf4=*=nompi_*
   - experiment-generator
