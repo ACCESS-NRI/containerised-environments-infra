@@ -205,6 +205,7 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
     ### Micromamba initialisation
     export MAMBA_EXE="${MAMBA_EXE:-}"
     export MAMBA_ROOT_PREFIX="$TEMP_WORKING_DIR/micromamba_root"
+    mkdir -p "$MAMBA_ROOT_PREFIX"
     # If MAMBA_EXE is not defined or not found, a temporary micromamba executable gets installed
     # for the build/deployment.
     if [ ! -x "$MAMBA_EXE" ]; then
