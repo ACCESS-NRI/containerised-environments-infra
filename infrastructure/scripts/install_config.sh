@@ -204,6 +204,8 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
 
     ### Micromamba initialisation
     export MAMBA_EXE="${MAMBA_EXE:-}"
+    # Set MAMBA_ROOT_PREFIX to a temporary directory within the TEMP_WORKING_DIR
+    # MAMBA_ROOT_PREFIX in our case only controls conda packages caching
     export MAMBA_ROOT_PREFIX="$TEMP_WORKING_DIR/micromamba_root"
     mkdir -p "$MAMBA_ROOT_PREFIX"
     # If MAMBA_EXE is not defined or not found, a temporary micromamba executable gets installed
