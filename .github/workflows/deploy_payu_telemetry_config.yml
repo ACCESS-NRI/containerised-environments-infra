@@ -73,13 +73,13 @@ jobs:
             telemetry_config_template.json
             telemetry_config_schema.json
 
-#   approval-for-production-deployment:
-#     name: Approval for production deployment
-#     runs-on: ubuntu-latest
-#     environment: production
-#     steps:
-#       - name: Approval granted
-#         run: echo "Production deployment approved."
+  approval-for-production-deployment:
+    name: Approval for production deployment
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Approval granted
+        run: echo "Production deployment approved."
 
   deploy:
     needs: [check-hpc-targets, get-telemetry-config]
