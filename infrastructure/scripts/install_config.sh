@@ -211,7 +211,7 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
         mamba_download_url='https://micro.mamba.pm/api/micromamba/linux-64/latest'
         curl -L "$mamba_download_url" | tar -xvjO bin/micromamba > "$mamba_temp_exe"
         # Set executable permissions to the micromamba executable
-        set_perms "$mamba_temp_exe" -x
+        set_perms -x "$mamba_temp_exe"
         MAMBA_EXE="$mamba_temp_exe"
     fi
     echo "Using micromamba executable: $MAMBA_EXE"
@@ -235,7 +235,7 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
         echo "Installing jq's latest version:"
         curl -L "$jq_download_url" --output "$JQ_EXE"
         # Set executable permissions to the jq executable
-        set_perms "$JQ_EXE" -x
+        set_perms -x "$JQ_EXE"
     fi
 
     ### Other settings
