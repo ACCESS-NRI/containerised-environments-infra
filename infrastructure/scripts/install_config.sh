@@ -203,35 +203,20 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
     export MAX_DEV_ENV_VERSIONS=3
 
     ### Micromamba initialisation
-    # MAMBA_RUNTIME_EXE is the micromamba executable used to manage environments at runtime (not within the build/deployment!)
-    export MAMBA_RUNTIME_EXE="$containerised_envs_root_dir/micromamba_installation/micromamba"
-    export MAMBA_EXE="${MAMBA_EXE:-$MAMBA_RUNTIME_EXE}"
-    # If MAMBA_RUNTIME_EXE is not defined or not found, a temporary micromamba executable (mamba_deployment_exe) gets installed
-    # for the build/deployment. This executable will then be copied to the MAMBA_RUNTIME_EXE path to be used at runtime.
-    # We install a temporary unique micromamba executable to avoid clashes with multiple installation of the same
-    # micromamba executable happening at the same time.
-    mamba_deployment_exe="$TEMP_WORKING_DIR/micromamba"
-    # If the micromamba executable is not found or not executable, the latest version is installed
+    export MAMBA_EXE="${MAMBA_EXE:-}"
+    export MAMBA_ROOT_PREFIX="$TEMP_WORKING_DIR/micromamba_root"
+    # If MAMBA_EXE is not defined or not found, a temporary micromamba executable gets installed
+    # for the build/deployment.
     if [ ! -x "$MAMBA_EXE" ]; then
-        if [ ! -f "$MAMBA_EXE" ]; then # Micromamba exe not found
-            echo "Micromamba executable '$MAMBA_EXE' not found."
-        else # Micromamba exe not executable
-            echo "Micromamba executable '$MAMBA_EXE' is not executable."
-        fi
+        echo "Micromamba executable '$MAMBA_EXE' not found or not executable."
         echo "Installing micromamba's latest version:"
+        mamba_temp_exe="$MAMBA_ROOT_PREFIX/micromamba"
         mamba_download_url='https://micro.mamba.pm/api/micromamba/linux-64/latest'
-        curl -L "$mamba_download_url" | tar -xvjO bin/micromamba > "$mamba_deployment_exe"
+        curl -L "$mamba_download_url" | tar -xvjO bin/micromamba > "$mamba_temp_exe"
         # Set executable permissions
-        chmod u+x "$mamba_deployment_exe"
-        set_perms "$mamba_deployment_exe"
-        MAMBA_EXE="$mamba_deployment_exe"
-        # Copy the micromamba executable to the MAMBA_RUNTIME_EXE path to be used at runtime
-        # We double check that the destination directory exists before copying for race-condition
-        # when multiple envs are deployed at the same time
-        if [ ! -x "$MAMBA_RUNTIME_EXE" ]; then
-            mkdir -pv "$(dirname "$MAMBA_RUNTIME_EXE")"
-            cp -v "$MAMBA_EXE" "$MAMBA_RUNTIME_EXE"
-        fi
+        chmod u+x "$mamba_temp_exe"
+        set_perms "$mamba_temp_exe"
+        MAMBA_EXE="$mamba_temp_exe"
     fi
     echo "Using micromamba executable: $MAMBA_EXE"
     

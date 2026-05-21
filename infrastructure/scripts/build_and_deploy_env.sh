@@ -126,9 +126,7 @@ echo ''   # ensure newline after cat output
 "$MAMBA_EXE" create -y \
     --prefix "$INTERNAL_ENV_DIR" \
     --file "$ENV_FILE" \
-    --no-rc \
-    --no-env \
-    --root-prefix "$TEMP_WORKING_DIR"
+    --no-rc
 
 # Delete executables in host_executables
 for exe in "${host_executables[@]}"; do
