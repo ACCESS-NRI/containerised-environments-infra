@@ -211,8 +211,7 @@ launcher_script=$(
 # Deploy launcher script and set permissions
 copy_if_changed_with_replace "$launcher_script" "$LAUNCHER_SCRIPT_PATH"
 # Add execute permissions to the launcher script
-chmod u+x "$LAUNCHER_SCRIPT_PATH"
-set_perms "$LAUNCHER_SCRIPT_PATH"
+set_perms "$LAUNCHER_SCRIPT_PATH" -x
 echo "Launcher script deployed to '$LAUNCHER_SCRIPT_PATH'"
 
 # Create symlinks to the launcher script for all binaries in the environment,

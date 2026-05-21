@@ -288,7 +288,7 @@ Secrets required for SSH:
 
 - `secrets.HOST`: Hostname for the environment
 - `secrets.HOST_DATA`: Hostname for the data mover
-- `secrets.SSH_USER`: Username for the account used for deployment
+- `secrets.USER`: Username for the account used for deployment. This is also going to be the owner of the deployed files.
 - `secrets.SSH_KEY`: Private SSH key for the user
 
 Variables required for Build/Test/Deploy workflows:
@@ -296,7 +296,6 @@ Variables required for Build/Test/Deploy workflows:
 - `vars.BASE_DIR` - Base deployment directory that contains `apps/` and `modules/` subdirectories (e.g for `Gadi`: `/g/data/vk83` and for `Gadi Prerelease`: `/g/data/vk83/prerelease/`). **Note:** Currently, the build scripts expect `BASE_DIR` directory to be in `/g/data`.
 - `vars.ADMIN_DIR`: Directory to store staging and log files, and tar files of deployed conda environments (e.g. `/g/data/vk83/admin/conda_containers/prerelease`)
 - `vars.GROUP_OWNER`: Permissions of read and execute for files installed to apps and modules (e.g. `vk83`)
-- `vars.OWNER`: User with read, write, and execute permissions for installed files
 - `vars.PROJECT`: Project code used for build and test PBS jobs (e.g. `tm70`)
 - `vars.STORAGE`: Storage directives for build and test PBS jobs (e.g. `gdata/vk83`)
 - `secrets.PAYU_TELEMETRY_CONFIG`: Sets environment variable for the Payu telemetry configuration path which is passed to the launcher script configuration. This means this environment variable is set every time the container runs.

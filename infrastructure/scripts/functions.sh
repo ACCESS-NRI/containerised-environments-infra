@@ -91,36 +91,40 @@ function in_array() {
 }
 
 function set_perms() {
-    # Set the permissions for each of the provided arguments
-    local arg
-    for arg in "$@"; do
-        if [[ -L "${arg}" ]]; then # Links
-            # Change group ownership for the link (not the file it points to)
-            chgrp -h "${GROUP_OWNER}" "${arg}"
-        elif [[ -d "${arg}" ]]; then # Directories
-            # Change group ownership recursively
-            chgrp -R "${GROUP_OWNER}" "${arg}"
-            # Set group permissions recursively to match user permissions without "write"
-            # and remove all permissions for others
-            chmod -R g=u-w,o= "${arg}"
-            # Set group ID bit, to have all children files and directories inherit the directory's group
-            chmod g+s "${arg}"
-            # Set specific permissions to OWNER recursively to read, write and execute 
-            # (only if someone else already has execute) permissions, also for new files and directories
-            setfacl -R -m u:"${OWNER}":rwX,d:u:"${OWNER}":rwX "${arg}"
-        elif [[ -f "${arg}" ]]; then # Files
-            # reset any existing acls
-            setfacl -b "${arg}"
-            # Change group ownership
-            chgrp "${GROUP_OWNER}" "${arg}"
-            # Set group permissions to match user permissions without "write"
-            # and remove all permissions for others
-            chmod g=u-w,o= "${arg}"
-            # Set specific permissions to OWNER to read, write and execute 
-            # (only if someone else already has execute) permissions
-            setfacl -m u:"${OWNER}":rwX "${arg}"
-        fi
+    # Set permissions to a provided file or directory.
+    # Use the -x option to also set executable permissions for files.
+
+    local exec_perm arg
+    
+    exec_perm='-'
+    while getopts ":x" opt; do
+        case $opt in
+            x) exec_perm=x ;;
+            \?) echo "Invalid option: -$OPTARG" >&2; return 1 ;;
+        esac
     done
+    shift $((OPTIND - 1))
+    arg="$1"
+
+    # Change group owner of files and directories recursively
+    # (-h option to change symbolic links themselves and not the link they point to)
+    chgrp -Rh "$GROUP_OWNER" "$arg"
+
+    # reset ACLs recursively to make sure we don't have any non-wanted ACLs
+    setfacl -R -b "$arg"
+
+    ### Directories
+    # Set ACLs, default ACLs and setgid only for directories
+    # rwx for user, r-x for group, none for others
+    find "$arg" -type d \ 
+        -exec setfacl -m u::rwx,g::r-x,o::---,d:u::rwx,d:g::r-x,d:o::--- {} \; \
+        -exec chmod g+s {} \;
+
+    ### Files
+    # Set ACLs only for files
+    # rw- for user, r-- for group, none for others
+    find "$arg" -type f \ 
+        -exec setfacl -m u::rw${exec_perm},g::r-${exec_perm},o::--- {} \;
 }
 
 function copy_if_changed() {

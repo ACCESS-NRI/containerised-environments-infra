@@ -36,16 +36,17 @@ containerised_envs_root_dir_name=containerised_envs
 apps_dir_name=apps
 # Name of the directory where all modules will be stored
 modules_dir_name=modules
+# Path to the functions script
+functions_path="$infra_scripts_dir/functions.sh"
 
 # write export script
 cat <<EOF
-export GROUP_OWNER='$GROUP_OWNER' 
-export OWNER='$OWNER' 
-export PBS_PROJECT='$PBS_PROJECT' 
-export PBS_STORAGE='$PBS_STORAGE' 
-export SINGULARITY_EXE='$SINGULARITY_EXE' 
-export JQ_EXE='$JQ_EXE' 
-export STABLE_PRODUCTION_BASE_DIR='$STABLE_PRODUCTION_BASE_DIR' 
+export GROUP_OWNER='$GROUP_OWNER'
+export PBS_PROJECT='$PBS_PROJECT'
+export PBS_STORAGE='$PBS_STORAGE'
+export SINGULARITY_EXE='$SINGULARITY_EXE'
+export JQ_EXE='$JQ_EXE'
+export STABLE_PRODUCTION_BASE_DIR='$STABLE_PRODUCTION_BASE_DIR'
 export CONTAINERISED_ENVS_DEBUG=$CONTAINERISED_ENVS_DEBUG
 export REPO_PATH='$REPO_PATH'
 export MODULE_NAME='$MODULE_NAME'
@@ -66,4 +67,5 @@ export INSTALL_CONFIG='$install_config'
 export CONTAINERISED_ENVS_ROOT_DIR_NAME='$containerised_envs_root_dir_name'
 export APPS_DIR_NAME='$apps_dir_name'
 export MODULES_DIR_NAME='$modules_dir_name'
+export FUNCTIONS_PATH='$functions_path'
 EOF
