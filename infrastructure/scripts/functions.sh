@@ -116,14 +116,14 @@ function set_perms() {
     ### Directories
     # Set ACLs, default ACLs and setgid only for directories
     # rwx for user, r-x for group, none for others
-    find "$arg" -type d \ 
+    find "$arg" -type d \
         -exec setfacl -m u::rwx,g::r-x,o::---,d:u::rwx,d:g::r-x,d:o::--- {} \; \
         -exec chmod g+s {} \;
 
     ### Files
     # Set ACLs only for files
     # rw- for user, r-- for group, none for others
-    find "$arg" -type f \ 
+    find "$arg" -type f \
         -exec setfacl -m u::rw${exec_perm},g::r-${exec_perm},o::--- {} \;
 }
 
