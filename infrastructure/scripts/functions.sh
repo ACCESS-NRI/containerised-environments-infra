@@ -91,12 +91,12 @@ function in_array() {
 }
 
 function set_perms() {
-    # Set permissions to a provided file or directory.
+    # Set permissions to a provided file or directory (recursively).
     # Use the -x option to also set executable permissions for files.
 
     local OPTIND exec_perm arg
     
-    exec_perm='-'
+    exec_perm='X' # Default to capital X to retain existing executable permissions if -x is not provided
     while getopts ":x" opt; do
         case $opt in
             x) exec_perm=x ;;
@@ -122,7 +122,8 @@ function set_perms() {
 
     ### Files
     # Set ACLs only for files
-    # rw- for user, r-- for group, none for others
+    # rwX for user, r-X for group, none for others (if -x option is NOT provided)
+    # rwx for user, r-x for group, none for others (if -x option is provided)
     find "$arg" -type f \
         -exec setfacl -m u::rw${exec_perm},g::r-${exec_perm},o::--- {} \;
 }

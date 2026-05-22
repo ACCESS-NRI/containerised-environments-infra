@@ -9,15 +9,20 @@
 temp_env_lock_file=$(mktemp)
 register_exit_trap_cmd "rm -vf $temp_env_lock_file" $TRAP_PRIORITY_LAST
 
-# Generate the environment lock file, remove the 'prefix: ...' line 
-# and set the environment name to $MODULE_NAME-$MODULE_VERSION
-"$MAMBA_EXE" env export --prefix "$TEMP_ENV_DIR" --no-rc \
-    | sed -e '/^prefix:/d' \
-          -e "s|^name:.*|name: $MODULE_NAME-$MODULE_VERSION|" \
+# Generate the environment lock file
+"$MAMBA_EXE" env export \
+    --prefix "$TEMP_ENV_DIR" \
+    --no-rc \
     > "$temp_env_lock_file"
 
-# Use awk to get pip-installed git packages from pip freeze output,
+# Remove the 'prefix: ...' line and set the environment name to $MODULE_NAME-$MODULE_VERSION
+sed -i -e '/^prefix:/d' \
+    -e "s|^name:.*|name: $MODULE_NAME-$MODULE_VERSION|" \
+    "$temp_env_lock_file"
+
+# Use awk (with 2 input files) to get pip-installed git packages from pip freeze output,
 # and then replace those in the env lock file
+# and output the final lock file to $ENV_LOCK_FILE_PATH
 awk '
 # Execute the first set of commands only for the first file (pip freeze output).
 # NR --> Total number of records processed (i.e. lines)
@@ -31,7 +36,7 @@ NR==FNR {
         gitspec = substr($0, idx+3)  # Get git specification
         specs[pkg] = gitspec # Store in specs array to use in the next set of commands
     }
-    next  # Go to next line. Do not process lines that are not match git-installed packages
+    next  # Go to next line
 }
 
 # Detect the start of the pip section in the lock file
@@ -63,4 +68,4 @@ in_pip && !/^    - / {
 
 # Print all other lines unchanged
 { print }
-' <("$TEMP_ENV_DIR/bin/python3" -m pip freeze) "$temp_env_lock_file"
+' <("$TEMP_ENV_DIR/bin/python3" -m pip freeze) "$temp_env_lock_file" > "$ENV_LOCK_FILE_PATH"

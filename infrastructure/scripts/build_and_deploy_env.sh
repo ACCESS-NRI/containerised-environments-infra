@@ -103,7 +103,8 @@ add_bind_str=$(printf ",%q" "${add_to_bind[@]}")
 # Set host_executables as an array
 IFS=',' read -ra host_executables <<< "$HOST_EXECUTABLES"
 
-"$SINGULARITY_EXE" -s exec \
+# Create the environment within the container
+"$SINGULARITY_EXEC" -s exec \
     --bind "${BIND_STR}${add_bind_str}" \
     "$RUNTIME_CONTAINER_IMAGE_PATH" \
     bash <<EOF
@@ -116,12 +117,10 @@ fi
 # Print environment specification for debugging purposes
 echo 'Creating environment using the following environment specification:'
 cat "$ENV_FILE"
-echo ''   # ensure newline after cat output
+echo '' # ensure newline after cat output for readability
 
 # Create the environment
 # We use --no-rc to disable the use of configuration files
-# We use --root-prefix to specify the cache packages dir, to avoid parallel 
-# env creation failing because mircomamba tries to access the cache at the same time
 "$MAMBA_EXE" create -y \
     --prefix "$INTERNAL_ENV_DIR" \
     --file "$ENV_FILE" \
@@ -224,7 +223,7 @@ done
 echo "Environment binaries linked to launcher script"
 
 ### GENERATE ENVIRONMENT LOCK
-source "$INFRA_SCRIPTS_DIR/generate_env_lock.sh" > "$ENV_LOCK_FILE_PATH"
+source "$INFRA_SCRIPTS_DIR/generate_env_lock.sh"
 echo "Environment lock created to: '$ENV_LOCK_FILE_PATH'"
 
 ### CLEANUP OLDEST DEVELOPMENT ENV FOR PRODUCTION
