@@ -154,7 +154,7 @@ first_internal_path_portion="${first_internal_path_portion%%/*}"
 env_path_truncated="$TEMP_WORKING_DIR/$first_internal_path_portion"
 
 # Set permissions within the squashfs
-set_perms "$env_path_truncated"
+set_perms -R "$env_path_truncated"
 
 # Pack the environment into squashfs
 mksquashfs "$env_path_truncated" "$TEMP_SQSH_FILE_PATH" \
@@ -228,6 +228,9 @@ echo "Environment lock created to: '$ENV_LOCK_FILE_PATH'"
 
 ### CLEANUP OLDEST DEVELOPMENT ENV FOR PRODUCTION
 source "$INFRA_SCRIPTS_DIR/cleanup_old_dev_env.sh"
+
+### ENSURE RIGHT PERMISSIONS RECURSIVELY FOR ENVIRONMENT VERSION
+set_perms -R "$ENV_VERSION_DIR"
 
 ### EXPORT ENV VARIABLES FOR HPC TARGET DEPLOYMENT INFO JSON (update_hpc_target_deployment_info trap function)
 # MODULE_USAGE_INSTRUCTIONS
