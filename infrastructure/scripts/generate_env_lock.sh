@@ -11,7 +11,7 @@ register_exit_trap_cmd "rm -vf $temp_env_lock_file" $TRAP_PRIORITY_LAST
 
 # Generate the environment lock file, remove the 'prefix: ...' line 
 # and set the environment name to $MODULE_NAME-$MODULE_VERSION
-"$MAMBA_EXE" env export --prefix "$TEMP_ENV_DIR" --no-rc --no-env \
+"$MAMBA_EXE" env export --prefix "$TEMP_ENV_DIR" --no-rc \
     | sed -e '/^prefix:/d' \
           -e "s|^name:.*|name: $MODULE_NAME-$MODULE_VERSION|" \
     > "$temp_env_lock_file"

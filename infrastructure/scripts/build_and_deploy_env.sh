@@ -120,7 +120,6 @@ echo ''   # ensure newline after cat output
 
 # Create the environment
 # We use --no-rc to disable the use of configuration files
-# We use --no-env to disable the use of environment variables
 # We use --root-prefix to specify the cache packages dir, to avoid parallel 
 # env creation failing because mircomamba tries to access the cache at the same time
 "$MAMBA_EXE" create -y \
