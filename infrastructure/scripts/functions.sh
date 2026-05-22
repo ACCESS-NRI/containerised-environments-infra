@@ -94,7 +94,7 @@ function set_perms() {
     # Set permissions to a provided file or directory.
     # Use the -x option to also set executable permissions for files.
 
-    local exec_perm arg
+    local OPTIND exec_perm arg
     
     exec_perm='-'
     while getopts ":x" opt; do
