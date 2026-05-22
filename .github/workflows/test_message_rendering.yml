@@ -178,11 +178,11 @@ jobs:
       
       - name: Set pr-update message in the step summary
         run: |
-          (
+          {
             echo "# Test PR-update Message"
             echo ""
             cat "${{ steps.set-pr-update-message.outputs.message-file-path }}"
-          ) >> $GITHUB_STEP_SUMMARY
+          } >> $GITHUB_STEP_SUMMARY
     
   test_messages_with_pr_init_json:
     runs-on: ubuntu-latest
@@ -205,11 +205,11 @@ jobs:
 
       - name: Set pr-init message in the step summary
         run: |
-          (
+          {
             echo "# Test PR-init Message"
             echo ""
             cat "${{ steps.set-pr-init-message.outputs.message-file-path }}"
-          ) >> $GITHUB_STEP_SUMMARY
+          } >> $GITHUB_STEP_SUMMARY
       
       - name: Test set_message action with pr-cancelled message
         id: set-pr-cancelled-message
@@ -220,11 +220,11 @@ jobs:
 
       - name: Set pr-cancelled message in the step summary
         run: |
-          (
+          {
             echo "# Test PR-cancelled Message"
             echo ""
             cat "${{ steps.set-pr-cancelled-message.outputs.message-file-path }}"
-          ) >> $GITHUB_STEP_SUMMARY
+          } >> $GITHUB_STEP_SUMMARY
       
       - name: Test set_message action with pr-update-failure message
         id: set-pr-update-failure-message
@@ -235,8 +235,8 @@ jobs:
 
       - name: Set pr-update-failure message in the step summary
         run: |
-          (
+          {
             echo "# Test PR-update-failure Message"
             echo ""
             cat "${{ steps.set-pr-update-failure-message.outputs.message-file-path }}"
-          ) >> $GITHUB_STEP_SUMMARY
+          } >> $GITHUB_STEP_SUMMARY

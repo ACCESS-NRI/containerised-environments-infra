@@ -86,7 +86,7 @@ jobs:
         env:
           THIS_WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          (
+          {
             echo '' # Blank line to separate this message from the commenter's original comment
             echo '> [!WARNING]'
             echo '> **No redeployment has been triggered.**'
@@ -97,7 +97,7 @@ jobs:
             echo '> The list of repo admins can be found in the About section at the top-right side of ' \
                  'this repo's [main page](${{ github.server_url }}/${{ github.repository }}).'
             echo "> _Comment modified by [this](${THIS_WORKFLOW_URL}) ${{ github.workflow }} workflow run._"
-          ) > "$MSG_FILE"
+          } > "$MSG_FILE"
       
       # Set a message to append to the comment if no previous runs are found
       - name: Set no-run message
@@ -106,14 +106,14 @@ jobs:
         env:
           THIS_WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          (
+          {
             echo '' # Blank line to separate this message from the commenter's original comment
             echo '> [!WARNING]'
             echo '> **No redeployment has been triggered.**'
             echo '> **No previous deployment runs have been found for this PR.**'
             echo '>'
             echo "> _Comment modified by [this](${THIS_WORKFLOW_URL}) ${{ github.workflow }} workflow run._"
-          ) > "$MSG_FILE"
+          } > "$MSG_FILE"
       
       # Set a message to append to the comment if previous run not completed
       - name: Set run-not-completed message
@@ -123,14 +123,14 @@ jobs:
           THIS_WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           DEPLOYMENT_RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ steps.get-latest-run.outputs.run-id }}
         run: |
-          (
+          {
             echo '' # Blank line to separate this message from the commenter's original comment
             echo '> [!WARNING]'
             echo '> **No redeployment has been triggered.**'
             echo "> **The [latest deployment run](${DEPLOYMENT_RUN}) has not completed yet.**"
             echo '>'
             echo "> _Comment modified by [this](${THIS_WORKFLOW_URL}) ${{ github.workflow }} workflow run._"
-          ) > "$MSG_FILE"
+          } > "$MSG_FILE"
       
       # Set a message to append to the comment if redeployment triggered successfully
       - name: Set run-not-completed message
@@ -140,14 +140,14 @@ jobs:
           THIS_WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           DEPLOYMENT_RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ steps.get-latest-run.outputs.run-id }}
         run: |
-          (
+          {
             echo '' # Blank line to separate this message from the commenter's original comment
             echo '> [!TIP]'
             echo '> **Redeployment has been triggered successfully.**'
             echo "> For further details, check the [workflow run](${DEPLOYMENT_RUN})."
             echo '>'
             echo "> _Comment modified by [this](${THIS_WORKFLOW_URL}) ${{ github.workflow }} workflow run._"
-          ) > "$MSG_FILE"
+          } > "$MSG_FILE"
 
       # Append a message to the commenter to notify them of the outcome:
       - name: Append to commenter message
