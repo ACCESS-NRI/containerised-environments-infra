@@ -104,7 +104,7 @@ add_bind_str=$(printf ",%q" "${add_to_bind[@]}")
 IFS=',' read -ra host_executables <<< "$HOST_EXECUTABLES"
 
 # Create the environment within the container
-"$SINGULARITY_EXEC" -s exec \
+"$SINGULARITY_EXE" -s exec \
     --bind "${BIND_STR}${add_bind_str}" \
     "$RUNTIME_CONTAINER_IMAGE_PATH" \
     bash <<EOF
