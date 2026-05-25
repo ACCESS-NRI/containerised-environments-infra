@@ -91,18 +91,17 @@ function in_array() {
 }
 
 function set_perms() {
-    # Set permissions to a provided file or directory.
-    # Use the -x option to also set executable permissions for files.
-    # Use the -R option to set permissions recursively.
+    # Set permissions to a provided file or directory (recursively).
+    # Use the -x option to set executable permissions to files.
 
-    local OPTIND OPTARG opt recursive default_exec_perm exec_perm arg
+    local OPTIND OPTARG opt default_exec_perm exec_perm arg acls
     
-    # Default permission to capital X, to set executable permissions to files only if any user already has executable permissions
+    # Default permission to capital X, to set executable permissions to files only
+    # if any user already has executable permissions
     default_exec_perm='X'
-    while getopts ":xR" opt; do
+    while getopts ":x" opt; do
         case $opt in
             x) exec_perm=x ;;
-            R) recursive=true ;;
             \?) echo "Invalid option: -$OPTARG" >&2; return 1 ;;
         esac
     done
@@ -111,27 +110,34 @@ function set_perms() {
 
     # Change group owner of files and directories recursively
     # we use the -h option to change symbolic links themselves and not the link they point to
-    # we use -R option if the `-R` option to this function is provided
-    chgrp ${recursive+-R} -h "$GROUP_OWNER" "$arg"
+    chgrp -R -h "$GROUP_OWNER" "$arg"
 
     # reset ACLs to make sure we don't have any non-wanted ACLs
-    # we use -R option if the `-R` option to this function is provided
-    setfacl ${recursive+-R} -b "$arg"
+    setfacl -R -b "$arg"
 
-    # Set ACLs
+    ### Directories
+    # Define permissions
+    acls='u::rwx' # rwx for user
+    acls+=',g::r-x' # r-x for group
+    acls+=',o::---' # no permissions for others
+    # Define default permissions
+    # (newly created files/folders within the directory will inherit these permissions)
+    acls+=',d:u::rwx' # rwx for user
+    acls+=',d:g::r-x' # r-x for group
+    acls+=',d:o::---' # no permissions for others
+    # Set permissions and setgid (newly created files/folders will inherit the group owner of the directory)
+    find "$arg" -type d \
+        -exec setfacl -m "$acls" {} + \
+        -exec chmod g+s {} +
+    
+    ### Files
+    # Define permissions
     acls="u::rw${exec_perm:-$default_exec_perm}" # rwx for user if -x option is provided, otherwise rwX
     acls+=",g::r-${exec_perm:-$default_exec_perm}" # r-x for group if -x option is provided, otherwise r-X
     acls+=",o::---" # no permissions for others
-    if [[ -d "$arg" ]]; then
-        ### Directories
-        # Add default ACLs
-        acls+=",d:u::rw-,d:g::r--,d:o::---"
-        # setgid
-        # we use -R option if the `-R` option to this function is provided
-        chmod ${recursive+-R} g+s "$arg"
-    fi
-    # we use -R option if the `-R` option to this function is provided
-    setfacl ${recursive+-R} -m "$acls" "$arg"
+    # Set permissions
+    find "$arg" -type f \
+        -exec setfacl -m "$acls" {} +
 }
 
 function copy_if_changed() {
