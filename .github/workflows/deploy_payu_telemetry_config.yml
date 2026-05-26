@@ -189,9 +189,11 @@ jobs:
         # Reset existing acls
         setfacl -b '$PAYU_TELEMETRY_CONFIG_PATH'
         # Change group ownership
-        chgrp $GROUP_OWNER '$PAYU_TELEMETRY_CONFIG_PATH'
-        # Set read and write permissions to owner, read permissions to group, and no permissions to others
-        chmod u=rw-,g=r--,o= '$PAYU_TELEMETRY_CONFIG_PATH'
-        # Set specific acls for OWNER (read and write)
-        setfacl -m u:$OWNER:rw- '$PAYU_TELEMETRY_CONFIG_PATH'
+        chgrp '$GROUP_OWNER' '$PAYU_TELEMETRY_CONFIG_PATH'
+        # Define permissions
+        acls='u::rw-' # rw- for user
+        acls+=',g::r--' # r-- for group
+        acls+=',o::---' # no permissions for others
+        # Set permissions
+        setfacl -m \$acls '$PAYU_TELEMETRY_CONFIG_PATH'
         EOF
