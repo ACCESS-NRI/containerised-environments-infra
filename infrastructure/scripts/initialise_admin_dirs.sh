@@ -16,8 +16,11 @@ directories=(
     "$LOGS_DIR"
 )
 
-# Create the directories and set the permissions
+# Create the directories and set the permissions only if they don't already exist
+# to avoid changing permissions on existing directories
 for dir in "${directories[@]}"; do
-    mkdir -p "$dir"
-    set_perms "$dir"
+    if [[ ! -d "$dir" ]]; then
+        mkdir -p "$dir"
+        set_perms "$dir"
+    fi
 done
