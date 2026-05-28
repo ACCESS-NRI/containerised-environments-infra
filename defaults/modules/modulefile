@@ -7,15 +7,15 @@
 conflict __MODULE_NAME__
 
 # Prepend environment bin directory (where all launcher symlinks are located) to PATH
-prepend-path PATH "__ENV_BIN_DIR__"
+prepend-path PATH {__ENV_BIN_DIR__}
 
 # The following environment variables are also set in the internal environment activation script, but
 # we set them here as well so they can be also used outside of the internal environment 
 # (e.g., to change the PS1 after the module is loaded)
-setenv CONDA_PROMPT_MODIFIER "__ENV_PROMPT_MODIFIER__"
-setenv CONDA_PREFIX "__INTERNAL_ENV_DIR__"
+setenv CONDA_PROMPT_MODIFIER {__ENV_PROMPT_MODIFIER__}
+setenv CONDA_PREFIX {__INTERNAL_ENV_DIR__}
 
 # Log info about module version loaded
 if {[module-info mode load]} {
-    puts stderr "Loaded module __MODULE_NAME__/__MODULE_VERSION__"
+    puts stderr {Loaded module __MODULE_NAME__/__MODULE_VERSION__}
 }
