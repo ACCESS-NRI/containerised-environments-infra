@@ -1,4 +1,4 @@
-name: model-tools-dev
+name: model-processing-dev
 channels:
   - accessnri
   - conda-forge
