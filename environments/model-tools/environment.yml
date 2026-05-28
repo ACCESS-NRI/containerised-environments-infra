@@ -1,0 +1,12 @@
+name: model-tools
+channels:
+  - accessnri
+  - conda-forge
+dependencies:
+  - python
+  - ants
+  - iris
+  - mule
+  - ugants
+  - umfile_utils
+  - xarray

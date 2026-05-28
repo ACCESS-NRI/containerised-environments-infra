@@ -1,0 +1,13 @@
+name: model-tools-dev
+channels:
+  - accessnri
+  - conda-forge
+dependencies:
+  - python
+  - ants
+  - iris
+  - mule
+  - ugants
+  - xarray
+  - pip:
+    - git+https://github.com/access-nri/umfile_utils.git@main
