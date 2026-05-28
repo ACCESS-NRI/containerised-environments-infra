@@ -22,14 +22,8 @@ if [[ "$ENV_TYPE" != STABLE && "$ENV_TYPE" != DEVELOPMENT ]]; then
     exit 1
 fi
 
-# Path to the repository functions script
-export functions="$INFRA_SCRIPTS_DIR/functions.sh"
-if [ ! -f "$functions" ]; then
-    echo "Error! Functions file '${functions#$REPO_PATH/}' not found in the repository!" >&2
-    exit 1
-fi
 # Make functions available
-source "$functions"
+source "$FUNCTIONS_PATH"
 
 # Set BASE_DIR depending on the deployment stage and environment type:
 # - STABLE environment for PRODUCTION --> $STABLE_PRODUCTION_BASE_DIR
@@ -216,9 +210,8 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
         mamba_temp_exe="$MAMBA_ROOT_PREFIX/micromamba"
         mamba_download_url='https://micro.mamba.pm/api/micromamba/linux-64/latest'
         curl -L "$mamba_download_url" | tar -xvjO bin/micromamba > "$mamba_temp_exe"
-        # Set executable permissions
-        chmod u+x "$mamba_temp_exe"
-        set_perms "$mamba_temp_exe"
+        # Set executable permissions to the micromamba executable
+        set_perms -x "$mamba_temp_exe"
         MAMBA_EXE="$mamba_temp_exe"
     fi
     echo "Using micromamba executable: $MAMBA_EXE"
@@ -241,9 +234,8 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
         jq_download_url='https://github.com/jqlang/jq/releases/latest/download/jq-linux-amd64'
         echo "Installing jq's latest version:"
         curl -L "$jq_download_url" --output "$JQ_EXE"
-        # Set executable permissions
-        chmod u+x "$JQ_EXE"
-        set_perms "$JQ_EXE"
+        # Set executable permissions to the jq executable
+        set_perms -x "$JQ_EXE"
     fi
 
     ### Other settings

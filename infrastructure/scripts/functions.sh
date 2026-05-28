@@ -91,36 +91,53 @@ function in_array() {
 }
 
 function set_perms() {
-    # Set the permissions for each of the provided arguments
-    local arg
-    for arg in "$@"; do
-        if [[ -L "${arg}" ]]; then # Links
-            # Change group ownership for the link (not the file it points to)
-            chgrp -h "${GROUP_OWNER}" "${arg}"
-        elif [[ -d "${arg}" ]]; then # Directories
-            # Change group ownership recursively
-            chgrp -R "${GROUP_OWNER}" "${arg}"
-            # Set group permissions recursively to match user permissions without "write"
-            # and remove all permissions for others
-            chmod -R g=u-w,o= "${arg}"
-            # Set group ID bit, to have all children files and directories inherit the directory's group
-            chmod g+s "${arg}"
-            # Set specific permissions to OWNER recursively to read, write and execute 
-            # (only if someone else already has execute) permissions, also for new files and directories
-            setfacl -R -m u:"${OWNER}":rwX,d:u:"${OWNER}":rwX "${arg}"
-        elif [[ -f "${arg}" ]]; then # Files
-            # reset any existing acls
-            setfacl -b "${arg}"
-            # Change group ownership
-            chgrp "${GROUP_OWNER}" "${arg}"
-            # Set group permissions to match user permissions without "write"
-            # and remove all permissions for others
-            chmod g=u-w,o= "${arg}"
-            # Set specific permissions to OWNER to read, write and execute 
-            # (only if someone else already has execute) permissions
-            setfacl -m u:"${OWNER}":rwX "${arg}"
-        fi
+    # Set permissions to a provided file or directory (recursively).
+    # Use the -x option to set executable permissions to files.
+
+    local OPTIND OPTARG opt default_exec_perm exec_perm arg acls
+    
+    # Default permission to capital X, to set executable permissions to files only
+    # if any user already has executable permissions
+    default_exec_perm='X'
+    while getopts ":x" opt; do
+        case $opt in
+            x) exec_perm=x ;;
+            \?) echo "Invalid option: -$OPTARG" >&2; return 1 ;;
+        esac
     done
+    shift $((OPTIND - 1))
+    arg="$1"
+
+    # Change group owner of files and directories recursively
+    # we use the -h option to change symbolic links themselves and not the link they point to
+    chgrp -R -h "$GROUP_OWNER" "$arg"
+
+    # reset ACLs to make sure we don't have any non-wanted ACLs
+    setfacl -R -b "$arg"
+
+    ### Directories
+    # Define permissions
+    acls='u::rwx' # rwx for user
+    acls+=',g::r-x' # r-x for group
+    acls+=',o::---' # no permissions for others
+    # Define default permissions
+    # (newly created files/folders within the directory will inherit these permissions)
+    acls+=',d:u::rwx' # rwx for user
+    acls+=',d:g::r-x' # r-x for group
+    acls+=',d:o::---' # no permissions for others
+    # Set permissions and setgid (newly created files/folders will inherit the group owner of the directory)
+    find "$arg" -type d \
+        -exec setfacl -m "$acls" {} + \
+        -exec chmod g+s {} +
+    
+    ### Files
+    # Define permissions
+    acls="u::rw${exec_perm:-$default_exec_perm}" # rwx for user if -x option is provided, otherwise rwX
+    acls+=",g::r-${exec_perm:-$default_exec_perm}" # r-x for group if -x option is provided, otherwise r-X
+    acls+=",o::---" # no permissions for others
+    # Set permissions
+    find "$arg" -type f \
+        -exec setfacl -m "$acls" {} +
 }
 
 function copy_if_changed() {

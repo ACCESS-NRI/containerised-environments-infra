@@ -73,7 +73,6 @@ runs:
         vars_unset=false
         vars=(
           GROUP_OWNER
-          OWNER
           PBS_PROJECT
           PBS_STORAGE
           SINGULARITY_EXE

@@ -40,7 +40,6 @@ jobs:
     environment: ${{ matrix.hpc-target }}
     env:
       GROUP_OWNER: '${{ vars.GROUP_OWNER }}'
-      OWNER: '${{ vars.OWNER }}'
       PBS_PROJECT: '${{ vars.PBS_PROJECT }}'
       PBS_STORAGE: '${{ vars.PBS_STORAGE }}'
       SINGULARITY_EXE: '${{ vars.SINGULARITY_EXE }}'
