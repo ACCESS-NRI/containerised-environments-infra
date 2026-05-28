@@ -3,6 +3,9 @@
 # The double underscore variables within this file are replaced by the 'replace_dunder_variables'
 # function within the build.sh or deploy.sh scripts
 
+# Prevent loading multiple versions of this module at the same time
+conflict __MODULE_NAME__
+
 # Prepend environment bin directory (where all launcher symlinks are located) to PATH
 prepend-path PATH "__ENV_BIN_DIR__"
 
