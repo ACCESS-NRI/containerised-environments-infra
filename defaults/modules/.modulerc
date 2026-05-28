@@ -3,4 +3,8 @@
 # The double underscore variables within this file are replaced by the 'replace_dunder_variables'
 # function within the build.sh or deploy.sh scripts
 
+if {"__ENV_TYPE__" == "DEVELOPMENT"} {
+    module-version __MODULE_NAME__/__MODULE_VERSION__ dev
+}
+
 module-version __MODULE_NAME__/__MODULE_VERSION__ default

@@ -146,7 +146,6 @@ function copy_if_changed() {
     # 1. If $2 is a directory: copy $1 into $2 using $1's basename if missing or different.
     # 2. If $2 is a file: copy $1 over it if contents differ.
     # 3. If $2 doesn't exist but its parent directory exists: copy $1 to $2's location.
-    # Also set the correct permissions for the copied file using `set_perms` function.
 
     local src dest target parent_dir 
     src="$1"
