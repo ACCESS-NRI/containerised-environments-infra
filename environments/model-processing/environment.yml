@@ -6,7 +6,8 @@ channels:
 dependencies:
   - python
   - ants
-  - scitools-iris
+  - esmf
   - mule
+  - scitools-iris
   - umfile_utils
   - xarray

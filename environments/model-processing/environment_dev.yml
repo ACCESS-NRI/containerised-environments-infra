@@ -6,8 +6,9 @@ channels:
 dependencies:
   - python
   - ants
-  - scitools-iris
+  - esmf
   - mule
+  - scitools-iris
   - xarray
   - pip:
     - git+https://github.com/access-nri/umfile_utils.git@main
