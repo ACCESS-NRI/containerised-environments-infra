@@ -10,6 +10,8 @@ if [[ "${CONTAINERISED_ENVS_DEBUG:-0}" == "1" ]]; then
     set -x
 fi
 
+# Strip slash from STABLE_PRODUCTION_BASE_DIR
+STABLE_PRODUCTION_BASE_DIR=${STABLE_PRODUCTION_BASE_DIR%/}
 # Path to default files within the repository
 defaults_dir="$REPO_PATH/defaults"
 # Path to the scripts wihtin the default files
