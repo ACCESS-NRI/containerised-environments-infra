@@ -19,6 +19,10 @@ inputs:
     description: A path to the JSON file containing the data to be used in the jinja2 template.
     type: string
     required: true
+  ref:
+    description: The git reference to use to check this repository. If not provided, github.sha will be used.
+    type: string
+    required: false
 
 outputs:
   message-file-path:
@@ -28,6 +32,15 @@ outputs:
 runs:
   using: composite
   steps:
+    # Checkout this repository.
+    # This makes sure we can use this action also from other repositories
+    - name: Checkout containerised-environments-infra repo
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ inputs.ref || github.sha }}
+        repository: access-nri/containerised-environments-infra
+        path: .__action_set_message
+
     - name: Set jinja template
       id: set-jinja-template
       shell: bash
@@ -43,23 +56,16 @@ runs:
         elif [[ '${{ inputs.message-type }}' == pr-cancelled ]]; then
           jinja_template_file=set_message_pr_cancelled.j2
         else
-          echo "Invalid message type: ${{ inputs.message-type }}. Must be one of: summary, pr-init, pr-update."
+          echo "Invalid message type: ${{ inputs.message-type }}. Must be one of: summary, pr-init, pr-update, pr-update-failure, pr-cancelled."
           exit 1
         fi
-        echo "jinja-template-file=./infrastructure/jinja2_templates/$jinja_template_file" >> $GITHUB_OUTPUT
-
-
-    - name: Set output path
-      env:
-        OUTPUT_PATH: ${{ github.workspace }}/message_output
-      shell: bash
-      run: echo "OUTPUT_PATH=$OUTPUT_PATH" >> $GITHUB_ENV
+        echo "jinja-template-file=${{ github.workspace }}/.__action_set_message/infrastructure/jinja2_templates/$jinja_template_file" >> $GITHUB_OUTPUT
 
     - name: Set message
       uses: cuchi/jinja2-action@8bd801365a8d36a0b20f45ee969161685de7785a # v1.3.0
       with:
         template: ${{ steps.set-jinja-template.outputs.jinja-template-file }}
-        output_file: ${{ env.OUTPUT_PATH }}
+        output_file: ${{ github.workspace }}/message_output
         data_file: ${{ inputs.data-file }}
         data_format: json
         strict: true
@@ -68,5 +74,5 @@ runs:
       id: set-output
       shell: bash
       run: |
-        echo "path=$OUTPUT_PATH" >> $GITHUB_OUTPUT
+        echo "path=${{ github.workspace }}/message_output" >> $GITHUB_OUTPUT
       
