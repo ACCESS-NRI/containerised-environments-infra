@@ -16,35 +16,35 @@ export TRAP_PRIORITY_LAST=90 # Runs last (e.g. used for commands that delete fil
 # Set the default DEPLOYMENT_STAGE
 DEPLOYMENT_STAGE=${DEPLOYMENT_STAGE:-}
 
-# Sanity check on ENV_TYPE
-if [[ "$ENV_TYPE" != STABLE && "$ENV_TYPE" != DEVELOPMENT ]]; then
-    echo "Error: Invalid ENV_TYPE '$ENV_TYPE'. Must be either 'STABLE' or 'DEVELOPMENT'." >&2
+# Sanity check on MODULE_TYPE
+if [[ "$MODULE_TYPE" != STABLE && "$MODULE_TYPE" != DEVELOPMENT ]]; then
+    echo "Error: Invalid MODULE_TYPE '$MODULE_TYPE'. Must be either 'STABLE' or 'DEVELOPMENT'." >&2
     exit 1
 fi
 
 # Make functions available
 source "$FUNCTIONS_PATH"
 
-# Set BASE_DIR depending on the deployment stage and environment type:
-# - STABLE environment for PRODUCTION --> $STABLE_PRODUCTION_BASE_DIR
-# - STABLE environment for STAGING --> $STABLE_STAGING_BASE_DIR
-# - DEVELOPMENT environment for PRODUCTION --> $DEVELOPMENT_PRODUCTION_BASE_DIR
-# - DEVELOPMENT environment for STAGING --> $DEVELOPMENT_STAGING_BASE_DIR
+# Set BASE_DIR depending on the deployment stage and module type:
+# - STABLE module for PRODUCTION --> $STABLE_PRODUCTION_BASE_DIR
+# - STABLE module for STAGING --> $STABLE_STAGING_BASE_DIR
+# - DEVELOPMENT module for PRODUCTION --> $DEVELOPMENT_PRODUCTION_BASE_DIR
+# - DEVELOPMENT module for STAGING --> $DEVELOPMENT_STAGING_BASE_DIR
 
-if [[ "$ENV_TYPE" == DEVELOPMENT ]]; then
+if [[ "$MODULE_TYPE" == DEVELOPMENT ]]; then
     if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]]; then
-        # DEVELOPMENT environment deployed to PRODUCTION
+        # DEVELOPMENT module deployed to PRODUCTION
         BASE_DIR="$DEVELOPMENT_PRODUCTION_BASE_DIR"
     else
-        # DEVELOPMENT environment deployed to STAGING 
+        # DEVELOPMENT module deployed to STAGING 
         # Or cases where no deployment takes place (e.g., staging files deletion)
         BASE_DIR="$DEVELOPMENT_STAGING_BASE_DIR"
     fi
 elif [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]]; then
-    # STABLE environment deployed to PRODUCTION
+    # STABLE module deployed to PRODUCTION
     BASE_DIR="$STABLE_PRODUCTION_BASE_DIR"
 else
-    # STABLE environment deployed to STAGING
+    # STABLE module deployed to STAGING
     # Or cases where no deployment takes place (e.g., staging files deletion)
     BASE_DIR="$STABLE_STAGING_BASE_DIR"
 fi
@@ -57,14 +57,14 @@ export APPS_DIR="$BASE_DIR/$APPS_DIR_NAME"
 # management/creation, as well as configuration and files for each different 
 # existing environment
 containerised_envs_root_dir="$APPS_DIR/$CONTAINERISED_ENVS_ROOT_DIR_NAME"
-# Path to the directory containing all versions of the containerised environment
-export ENV_DIR="$containerised_envs_root_dir/envs/$MODULE_NAME"
-# Path to the directory containing the containerised environment specific version
-export ENV_VERSION_DIR="$ENV_DIR/$MODULE_VERSION"
-# Manifest file name for easy env version deletion
-export MANIFEST_FILE_NAME=manifest.txt
-# Manifest file for easy env version deletion
-export MANIFEST_FILE_PATH="$ENV_VERSION_DIR/$MANIFEST_FILE_NAME"
+# Path to the directory containing all versions of the app
+export APP_DIR="$containerised_envs_root_dir/envs/$MODULE_NAME"
+# Path to the directory containing the specific version of the app
+export APP_VERSION_DIR="$APP_DIR/$MODULE_VERSION"
+# Files manifest name for easy module version deletion
+export FILES_MANIFEST_NAME=files_manifest.txt
+# Files manifest for easy module version deletion
+export FILES_MANIFEST_PATH="$APP_VERSION_DIR/$FILES_MANIFEST_NAME"
 
 ### Logic that runs only if a deployment is taking place
 if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING ]]; then
@@ -132,7 +132,7 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
 
 
     # Path to the bin directory where all the containerised environment binaries are stored
-    export ENV_BIN_DIR="$ENV_VERSION_DIR/bin"
+    export ENV_BIN_DIR="$APP_VERSION_DIR/bin"
 
     # Set launcher script name
     export LAUNCHER_SCRIPT_NAME=launcher.sh
@@ -148,28 +148,28 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
     # This image is automatically built by the build_container_image.yml workflow
     export REPO_CONTAINER_IMAGE_PATH="$DEFAULTS_DIR/container/base_image.sif"
     # Path to the container image to be used at runtime
-    export RUNTIME_CONTAINER_IMAGE_PATH="$ENV_VERSION_DIR/$(basename "$REPO_CONTAINER_IMAGE_PATH")"
+    export RUNTIME_CONTAINER_IMAGE_PATH="$APP_VERSION_DIR/$(basename "$REPO_CONTAINER_IMAGE_PATH")"
 
     # Name of the created squashfs file
     export SQSH_FILENAME=overlay.sqsh
     # Full path to the created squashfs file in the temporary directory
     export TEMP_SQSH_FILE_PATH="$TEMP_WORKING_DIR/$SQSH_FILENAME"
     # Full path to the squashfs file
-    export SQSH_FILE_PATH="$ENV_VERSION_DIR/$SQSH_FILENAME"
+    export SQSH_FILE_PATH="$APP_VERSION_DIR/$SQSH_FILENAME"
 
 
     # Name of the environment lock file
     env_lock_filename=env_spec_lock.yml
     # Full path to the environment lock file
-    export ENV_LOCK_FILE_PATH="$ENV_VERSION_DIR/$env_lock_filename"
+    export ENV_LOCK_FILE_PATH="$APP_VERSION_DIR/$env_lock_filename"
     # Environment specification file
     if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]]; then
         # If the deployment is for PRODUCTION, use the specification lock file produced in the STAGING deployment
-        if [[ "$ENV_TYPE" == STABLE ]]; then
-            # For a STABLE env, take the ENV_LOCK_FILE_PATH and replace the initial BASE_DIR with the STABLE_STAGING_BASE_DIR
+        if [[ "$MODULE_TYPE" == STABLE ]]; then
+            # For a STABLE module, take the ENV_LOCK_FILE_PATH and replace the initial BASE_DIR with the STABLE_STAGING_BASE_DIR
             env_spec_path=$STABLE_STAGING_BASE_DIR/${ENV_LOCK_FILE_PATH#$BASE_DIR/}
         else
-            # For a DEVELOPMENT env, take the ENV_LOCK_FILE_PATH and replace the initial BASE_DIR with the DEVELOPMENT_STAGING_BASE_DIR
+            # For a DEVELOPMENT module, take the ENV_LOCK_FILE_PATH and replace the initial BASE_DIR with the DEVELOPMENT_STAGING_BASE_DIR
             env_spec_path=$DEVELOPMENT_STAGING_BASE_DIR/${ENV_LOCK_FILE_PATH#$BASE_DIR/}
         fi
         if [ ! -f "$env_spec_path" ]; then
@@ -178,11 +178,11 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
         fi
     else
         # If the deployment is for STAGING, use the specification from the repository
-        if [[ "$ENV_TYPE" == STABLE ]]; then
-            # 'environment.yml' for STABLE environments
+        if [[ "$MODULE_TYPE" == STABLE ]]; then
+            # 'environment.yml' for STABLE modules
             env_spec_path="$env_folder/environment.yml"
         else
-            #' environment_dev.yml' for DEVELOPMENT environments
+            #' environment_dev.yml' for DEVELOPMENT modules
             env_spec_path="$env_folder/environment_dev.yml"
         fi
         if [ ! -f "$env_spec_path" ]; then
@@ -192,9 +192,9 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
     fi
     export ENV_FILE="$env_spec_path"
 
-    # Maximum number of DEVELOPMENT environment versions to keep in PRODUCTION simultaneously.
+    # Maximum number of DEVELOPMENT module versions to keep in PRODUCTION simultaneously.
     # If a new deployment causes the total to exceed this limit, the oldest version is deleted.
-    export MAX_DEV_ENV_VERSIONS=3
+    export MAX_DEV_MODULE_VERSIONS=3
 
     ### Micromamba initialisation
     export MAMBA_EXE="${MAMBA_EXE:-}"
@@ -229,7 +229,7 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
         else
             echo "jq executable '$JQ_EXE' is not executable."
         fi
-        # Set JQ_EXE within the environment temporary directory TEMP_WORKING_DIR
+        # Set JQ_EXE within the temporary directory TEMP_WORKING_DIR
         JQ_EXE="$TEMP_WORKING_DIR/jq"
         jq_download_url='https://github.com/jqlang/jq/releases/latest/download/jq-linux-amd64'
         echo "Installing jq's latest version:"

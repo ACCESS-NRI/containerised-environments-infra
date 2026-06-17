@@ -68,8 +68,8 @@ function register_exit_trap_cmd() {
 
 function delete_files_in_manifest() {
     # Delete all files and folders associated with a version, which are listed in the manifest $1.
-    # If $1 is not provided, it defaults to the MANIFEST_FILE_PATH for the current environment version.
-    local manifest_file="${1:-$MANIFEST_FILE_PATH}"
+    # If $1 is not provided, it defaults to the FILES_MANIFEST_PATH for the current module version.
+    local manifest_file="${1:-$FILES_MANIFEST_PATH}"
     if [[ ! -f "$manifest_file" ]]; then
         echo "Error: manifest file '$manifest_file' not found." >&2
         return 1

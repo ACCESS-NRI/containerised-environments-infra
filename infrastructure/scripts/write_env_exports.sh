@@ -22,11 +22,11 @@ infra_scripts_dir="$REPO_PATH/infrastructure/scripts"
 admin_dir="$STABLE_PRODUCTION_BASE_DIR/admin"
 # Name of the development subdirectory
 development_subdir_name=prerelease
-# Path to the directory where development environments for production are deployed
+# Path to the directory where development modules for production are deployed
 development_production_base_dir="$STABLE_PRODUCTION_BASE_DIR/$development_subdir_name"
-# Path to the directory where stable environments for staging are deployed
+# Path to the directory where stable modules for staging are deployed
 stable_staging_base_dir="$admin_dir/staging"
-# Path to the directory where development environments for staging are deployed
+# Path to the directory where development modules for staging are deployed
 development_staging_base_dir="$admin_dir/staging/$development_subdir_name"
 # Path to the logs directory
 logs_dir="$admin_dir/logs"
@@ -53,7 +53,7 @@ export CONTAINERISED_ENVS_DEBUG=$CONTAINERISED_ENVS_DEBUG
 export REPO_PATH='$REPO_PATH'
 export MODULE_NAME='$MODULE_NAME'
 export MODULE_VERSION='$MODULE_VERSION'
-export ENV_TYPE='$ENV_TYPE'
+export MODULE_TYPE='$MODULE_TYPE'
 export HPC_TARGET='$HPC_TARGET'
 export HPC_TARGET_DEPLOYMENT_INFO_JSON_PATH='$HPC_TARGET_DEPLOYMENT_INFO_JSON_PATH'
 export STARTED_AT='$STARTED_AT'

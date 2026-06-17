@@ -1,7 +1,7 @@
-name: Release STABLE environment to PRODUCTION
+name: Release STABLE module to PRODUCTION
 description: |
-  This workflow deploys STABLE environments to PRODUCTION.
-  It is used to release the environments / modules that will be used in production by the end users
+  This workflow deploys STABLE modules to PRODUCTION.
+  It is used to release the modules that will be used in production by the end users
   on the HPC systems.
 on:
   workflow_dispatch:

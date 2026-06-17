@@ -1,8 +1,8 @@
-name: Redeploy environment to STAGING 
+name: Redeploy module to STAGING 
 description: |
   Triggered by a `!redeploy` comment on an open PR, this workflow re-runs the latest
   "Deploy envs to STAGING" (deploy_to_staging.yml) worklow for that PR. This is useful when:
-    - A development dependency was updated externally and the environment needs rebuilding,
+    - A development dependency was updated externally and the module needs rebuilding,
       but no changes were made to the PR itself
     - A transient error occurred during deployment and a retry is needed
 
