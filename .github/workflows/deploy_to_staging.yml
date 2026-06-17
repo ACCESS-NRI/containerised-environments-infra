@@ -1,22 +1,22 @@
 name: Deploy envs to STAGING
 description: |
-  This workflow deploys environments to STAGING for Pull Requests opened to this repo 
+  This workflow deploys modules to STAGING for Pull Requests opened to this repo 
   (with `main` as a base) in the following cases: 
   
   - If the changes involve the `environments` folder, for each environment subfolder changed:
 
     - If the changes involve the `environment_dev.yml` (but not the `environment.yml`),
-      a DEVELOPMENT environment is deployed to STAGING
+      a DEVELOPMENT module is deployed to STAGING
     - If the changes involve the `environment.yml` (but not the `environment_dev.yml`),
-      a STABLE environment is deployed to STAGING
+      a STABLE module is deployed to STAGING
     - If the changes involve both the `environment_dev.yml` and `environment.yml`,
-      both a STABLE and DEVELOPMENT environment is deployed to STAGING
+      both a STABLE and DEVELOPMENT module is deployed to STAGING
     - If the changes don't involve either of the environment spec files (e.g., changes in an override file)
-      a STABLE environment is deployed to STAGING
+      a STABLE module is deployed to STAGING
 
   - If the changes don't involve the `environments` folder (for example any change to the
-    `defaults` folder), a STABLE 'test' environment is deployed to STAGING.
-    We use the 'test' environment as an example for infrastuture automatic testing within CI
+    `defaults` folder), a STABLE 'test' module is deployed to STAGING.
+    We use the 'test' module as an example for infrastuture automatic testing within CI
 
 on:
   pull_request:
@@ -57,7 +57,7 @@ jobs:
       # Since we have the built container images within the repos, and we automatically build them
       # whenever there is a change to a container definition file, we need to make sure that, if this
       # workflow is triggered by a pull request, no changes to a container definition or built image
-      # are found together with other changes, otherwise we might end up deploying an environment
+      # are found together with other changes, otherwise we might end up deploying a module
       # using a different container to the one we are supposed to be testing and deploying.
       - name: Sanity check on container-related files
         run: |
@@ -113,7 +113,7 @@ jobs:
           echo "stable_envs=$stable_envs" >> $GITHUB_OUTPUT
 
   set_version_dev:
-    name: Set version for DEVELOPMENT environments
+    name: Set version for DEVELOPMENT modules
     runs-on: ubuntu-latest
     needs: get-environments
     outputs:
@@ -131,7 +131,7 @@ jobs:
           is_stable: false
   
   set_version_stable:
-    name: Set version for STABLE environments
+    name: Set version for STABLE modules
     runs-on: ubuntu-latest
     needs: get-environments
     outputs:
@@ -149,7 +149,7 @@ jobs:
           is_stable: true
 
   deploy_development_staging:
-    name: Deploy DEVELOPMENT ${{ matrix.environment }} environment to STAGING
+    name: Deploy DEVELOPMENT ${{ matrix.environment }} module to STAGING
     needs: [get-environments, set_version_dev]
     strategy:
       fail-fast: false
@@ -158,7 +158,7 @@ jobs:
     uses: ./.github/workflows/deploy_env.yml
     with:
       environment: "${{ matrix.environment }}"
-      # We prepend `dev-` to the version of a DEVELOPMENT environment
+      # We prepend `dev-` to the version of a DEVELOPMENT module
       version: "${{ needs.set_version_dev.outputs.version }}"
       staging: true
       production: false
@@ -166,7 +166,7 @@ jobs:
     secrets: inherit
   
   deploy_stable_staging:
-    name: Deploy STABLE ${{ matrix.environment }} environment to STAGING
+    name: Deploy STABLE ${{ matrix.environment }} module to STAGING
     needs: [get-environments, set_version_stable]
     strategy:
       fail-fast: false

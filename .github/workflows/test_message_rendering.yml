@@ -75,7 +75,7 @@ jobs:
           HPC_TARGET: ${{ matrix.hpc-target }}
           MODULE_NAME: ${{ matrix.module-name }}
           MODULE_VERSION: ${{ matrix.module-version }}
-          ENV_TYPE: ${{ matrix.env-type }}
+          MODULE_TYPE: ${{ matrix.env-type }}
           STARTED_AT: "1992-04-05T23:55:00 GMT+1"
           DEPLOYMENT_STAGE: ${{ matrix.deployment-stage }}
           MODULE_USAGE_INSTRUCTIONS: "${{ matrix.success == 'true' && format('module use /path/to/other/modules\nmodule load {0}/{1}', matrix.module-name, matrix.module-version) }}"

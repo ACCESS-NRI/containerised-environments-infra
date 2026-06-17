@@ -21,24 +21,24 @@ exec &> "$PBS_JOB_LOG_FILE"
 source "$INSTALL_CONFIG"
 
 ### Initialise directories
-# Make sure the target environment directory does not already exist, to avoid accidentally overwriting an existing environment.
-if [[ -d "$ENV_VERSION_DIR" ]]; then
-    echo "Error! Environment version '$MODULE_NAME/$MODULE_VERSION' already exists." >&2
+# Make sure the target module directory does not already exist, to avoid accidentally overwriting an existing environment.
+if [[ -d "$APP_VERSION_DIR" ]]; then
+    echo "Error! Module version '$MODULE_NAME/$MODULE_VERSION' already exists." >&2
     exit 1
 fi
-# Create a trap function that would delete the environment version related files
+# Create a trap function that would delete the module version related files
 # in case the script fails
 cleanup_env() {
     # _exit_status vaiable is initialised within the register_exit_trap_cmd function
     if [ $_exit_status -ne 0 ]; then
-        echo "Error! Build failed. Cleaning up environment version '$MODULE_NAME/$MODULE_VERSION' related files..." >&2
+        echo "Error! Build failed. Cleaning up module version '$MODULE_NAME/$MODULE_VERSION' related files..." >&2
         delete_files_in_manifest
     fi
 }
 register_exit_trap_cmd cleanup_env $TRAP_PRIORITY_LAST
 
 echo 'Initialising directories...'
-mkdir -pv "$ENV_VERSION_DIR"
+mkdir -pv "$APP_VERSION_DIR"
 mkdir -pv "$MODULE_DIR"
 mkdir -pv "$ENV_BIN_DIR"
 mkdir -pv "$(dirname "$TEMP_ENV_DIR")"
@@ -56,15 +56,15 @@ register_exit_trap_cmd update_hpc_target_deployment_info $TRAP_PRIORITY_FIRST
 
 
 ### CREATE MANIFEST FILE
-# Create a manifest file listing all the files and folders related to the current environment version:
+# Create a manifest file listing all the files and folders related to the current module version:
 # - Modulefile
 # - Env activation file
 # - Env folder
 
-cat > "$MANIFEST_FILE_PATH" <<EOF
+cat > "$FILES_MANIFEST_PATH" <<EOF
 $MODULE_FILE_PATH
 $ACTIVATION_SCRIPT_PATH
-$ENV_VERSION_DIR
+$APP_VERSION_DIR
 EOF
 
 ### UPDATE CONTAINER IMAGE
@@ -229,8 +229,8 @@ echo "Environment lock created to: '$ENV_LOCK_FILE_PATH'"
 ### CLEANUP OLDEST DEVELOPMENT ENV FOR PRODUCTION
 source "$INFRA_SCRIPTS_DIR/cleanup_old_dev_env.sh"
 
-### ENSURE RIGHT PERMISSIONS RECURSIVELY FOR ENVIRONMENT VERSION
-set_perms "$ENV_VERSION_DIR"
+### ENSURE RIGHT PERMISSIONS RECURSIVELY FOR MODULE VERSION
+set_perms "$APP_VERSION_DIR"
 
 ### EXPORT ENV VARIABLES FOR HPC TARGET DEPLOYMENT INFO JSON (update_hpc_target_deployment_info trap function)
 # MODULE_USAGE_INSTRUCTIONS

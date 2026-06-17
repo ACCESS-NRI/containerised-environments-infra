@@ -1,4 +1,4 @@
-name: Delete all the STAGING environments
+name: Delete all the STAGING modules
 description: |
   This workflow deletes the content of all STAGING directories across all available HPC targets.
 
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # To ensure the removal of all the STAGING environments across all HPC targets, we detect all
+  # To ensure the removal of all the STAGING modules across all HPC targets, we detect all
   # available hpc targets by joining together all entries in the `hpc_targets` files (default and overrides)
   get-all-hpc-targets:
     runs-on: ubuntu-latest
@@ -30,7 +30,7 @@ jobs:
           )
           echo "all-hpc-targets=$targets" >> $GITHUB_OUTPUT
 
-  delete-staging-environments:
+  delete-staging-modules:
     needs: [get-all-hpc-targets]
     runs-on: ubuntu-latest
     strategy:
@@ -47,7 +47,7 @@ jobs:
       STABLE_PRODUCTION_BASE_DIR: '${{ vars.STABLE_PRODUCTION_BASE_DIR }}'
       MODULE_NAME: dummy_name
       MODULE_VERSION: dummy_version
-      ENV_TYPE: STABLE
+      MODULE_TYPE: STABLE
       HPC_TARGET: ${{ matrix.hpc-target }}
       STARTED_AT: dummy_date
     steps:

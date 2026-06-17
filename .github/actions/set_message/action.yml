@@ -9,10 +9,10 @@ inputs:
       The type of message to set. Can be one of:
       - summary: A message to be added to the step summary
       - pr-init: A message to be added as a comment in the PR when the deployment is initiated
-      - pr-update: A message to be added as a comment in the PR when the environment deployment ended
-      - pr-update-failure: A message to be added as a comment in the PR when the environment deployment failed
+      - pr-update: A message to be added as a comment in the PR when the deployment ends
+      - pr-update-failure: A message to be added as a comment in the PR when the deployment fails
         and no deployment information could be retrieved
-      - pr-cancelled: A message to be added as a comment in the PR when the environment deployment workflow was cancelled
+      - pr-cancelled: A message to be added as a comment in the PR when the deployment workflow was cancelled
     type: string
     required: true
   data-file:

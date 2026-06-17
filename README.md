@@ -16,41 +16,41 @@ This GitHub
 - Some hosts directories (for example `/g` and `/scratch`) on Gadi are automatically bound to the container because of Gadi's singularity configuration file.
 - The internal Python environment is activated within the container, not when the module is loaded. When the module is loaded, only a few related env variables are set (`CONDA_PREFIX`, `CONDA_PROMPT_MODIFIER`)
 - To run in debug mode, re-run workflow enabling debug logging
-- All files are environment version specific. There are no common files used across multiple environments or environment versions. This makes each environment version completely stand-alone and not touched by any updates of the "default" infrastructure.
-- The _environment type_ (`ENV_TYPE`) can be `STABLE` or `DEVELOPMENT` (prerelease). 
-  - DEVELOPMENT envs are used to test the functionality of the development packages within the environment. The dev packages will be those installed using pip + git, for example:
+- All files are module version specific. There are no common files used across multiple modules or module versions. This makes each module version completely stand-alone and not touched by any updates of the "default" infrastructure.
+- The _module type_ (`MODULE_TYPE`) can be `STABLE` or `DEVELOPMENT` (prerelease). 
+  - DEVELOPMENT modules are used to test the functionality of the development packages within the environment they load. The dev packages will be those installed using pip + git, for example:
     ```yml
       - pip:
         - git+https://github.com/OWNER/REPO.git@REF
         - git+https://github.com/OWNER2/REPO2.git@REF2
     ```
-  - STABLE is used for non-development environments, where all packages are specified with defined versions and installed from Anaconda (preferably) or PyPI.
+  - STABLE is used for non-development modules, where the loaded environment has all packages specified with defined versions and installed from Anaconda.org (preferably).
 - The _deployment stage_ (`DEPLOYMENT_STAGE`) can be `STAGING` or `PRODUCTION`.
-  PRODUCTION environments live in the folder used by the end users.
-  STAGING environments live in a testing folder (usually not advertised to the end user).
-  STAGING environments are used for testing and validating the infrastructure (not the specific functionalities of the internal packages), mainly carried out automatically within CI. 
-  The _deployment stage_ is independent from the _environment type_.
+  PRODUCTION modules live in the folder used by the end users.
+  STAGING modules live in a testing folder (usually not advertised to the end user).
+  STAGING modules are used for testing and validating the infrastructure (not the specific functionalities of the internal packages), mainly carried out automatically within CI. 
+  The _deployment stage_ is independent from the _module type_.
 
 There can be four independent scenarios in total:
 | | **DEVELOPMENT** | **STABLE** |
 |---|---|---|
-| **STAGING** | Dev environments (git) deployed in the staging folder for infrastructural testing (through CI) | Stable environments (Anaconda/PyPI) deployed in the staging folder for infrastructural testing (through CI) |
-| **PRODUCTION** | Dev environments (git) deployed in the production folder to be tested for functionality by some users | Stable environments (Anaconda/PyPI) deployed in the production folder to be used by users in their day-to-day workflows |
+| **STAGING** | Dev modules (git) deployed in the staging folder for infrastructural testing (through CI) | Stable modules (Anaconda/PyPI) deployed in the staging folder for infrastructural testing (through CI) |
+| **PRODUCTION** | Dev modules (git) deployed in the production folder to be tested for functionality by some users | Stable modules (Anaconda/PyPI) deployed in the production folder to be used by users in their day-to-day workflows |
 
-The environments are deployed in the following scenarios:
-- DEVELOPMENT environments in PRODUCTION can be deployed as a workflow dispatch (for example if a dev package specified in `environment_dev.yml` gets updated) by providing the environment name.
+The modules are deployed in the following scenarios:
+- DEVELOPMENT modules in PRODUCTION can be deployed as a workflow dispatch (for example if a dev package specified in `environment_dev.yml` gets updated) by providing the environment name.
 - When a pull request is opened or syncronised against the `main` branch of the repo:
    - If the changes involve the `environments` folder, for each environment subfolder changed:
-       - If the changes involve the `environment_dev.yml`, a DEVELOPMENT environment in STAGING is deployed (even if there are also changes to the `environment.yml`)
-       - If the changes don't involve the `environment_dev.yml`, a STABLE environment in STAGING is deployed
-   - If the changes don't involve the `environments` folder, a `payu` STABLE environment in STAGING is deployed, only for infrastuture automatic testing.
-- When a pull request is merged to `main` (PR to main is closed with merge), if the changes involved any `environment_dev.yml` file, a DEVELOPMENT environment in PRODUCTION is deployed for each environment changed.
-- STABLE environment in PRODUCTION (the actual environment full release) can be deployed as a workflow dispatch by providing the environment name and version to be deployed.
+       - If the changes involve the `environment_dev.yml`, a DEVELOPMENT module in STAGING is deployed (even if there are also changes to the `environment.yml`)
+       - If the changes don't involve the `environment_dev.yml`, a STABLE module in STAGING is deployed
+   - If the changes don't involve the `environments` folder, a `payu` STABLE module in STAGING is deployed, only for infrastuture automatic testing.
+- When a pull request is merged to `main` (PR to main is closed with merge), if the changes involved any `environment_dev.yml` file, a DEVELOPMENT module in PRODUCTION is deployed for each environment changed.
+- STABLE module in PRODUCTION (the actual module full release) can be deployed as a workflow dispatch by providing the environment name and version to be deployed.
 
 - The disk and inodes consumption for each each env version depends on the env specification. 
-  However, an average environment version should consume around ~1GB and ~500 inodes.
+  However, an average module version should consume around ~1GB and ~500 inodes.
 
-- The `manifest.txt` is a file that keeps tracks of the files and folders created for a specific environment version. This makes deletion of a specific version easy, by running: `xargs rm -vrf < "$MANIFEST_FILE_PATH"`
+- The `manifest.txt` is a file that keeps tracks of the files and folders created for a specific module version. This makes deletion of a specific version easy (e.g., by running: `xargs rm -vrf < "$FILES_MANIFEST_PATH"`).
 
 - Changes that are needed in the host when they load the module should go in the `launcher.sh` script.
   Changes that are needed only within the container should go in the `env_activation.sh` script.
@@ -65,8 +65,8 @@ Add information on GitHub Environments setup ...
 The actual container used as the base of the environment contains only enough components to create a functional environment. The container does not contain its own operating system, instead, it is comprised of a series of empty directories and symlinks. The necessary components of Gadi’s operating systems are bind-mounted in at launch time through the launcher script. Though this does make the environment entirely unportable, which goes against the philosophy of containerisation, the container itself only needs to be constructed once for any given system, and reconstruction is trivial. The advantage of this approach is that the conda environment is separate to the container, and therefore multiple conda environments can be present ‘in’ the same container. This also means that the container can never be out of sync as Gadi’s OS receives updates. This allows us to make modifications to the conda environment after installation that enhance the functionality of the environment.
 
 ## Infrastructure
-STAGING environments are deployed within the `staging_base_dir` (set within `defaults/scripts/config.sh`).
-When a PRODUCTION environment is released, the same deployment script is run, but with base directory set to `STABLE_PRODUCTION_BASE_DIR` instead (set within `defaults/scripts/config.sh`).
+STAGING modules are deployed within the `staging_base_dir` (set within `defaults/scripts/config.sh`).
+When a PRODUCTION module is released, the same deployment script is run, but with base directory set to `STABLE_PRODUCTION_BASE_DIR` instead (set within `defaults/scripts/config.sh`).
 This allows the staging directory to have the same exact structure and files as the related production directory, so STAGING modules can be tested before being released in PRODUCTION by running the same `module load ...` commands that would be run for PRODUCTION modules.
 The only change would be the `module use ...` command, that would need to be specific to the staging directory (`staging_base_dir`).
 

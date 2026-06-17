@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
-# This script is used to delete the staging files associated to a STAGING environment deployment.
+# This script is used to delete the staging files associated to a STAGING module deployment.
 
 # Usage: delete_staging_files.sh [<pr_number> | --all]
 
 # There are three deletion cases:
 # 1. PRODUCTION env deployed through a workflow dispatch.
-#    In this case, there is only one staging environment deployed and it can be identified through
+#    In this case, there is only one staging module deployed and it can be identified through
 #    the $MODULE_VERSION variable (this script doesn't need any additional parameters).
 # 2. STAGING envs deployment within a Pull Request.
-#    In this case, there can be multiple environments deployed within the same PR
-#    (this script needs the pr_number positional parameter to identify all the environments associated with that PR).
+#    In this case, there can be multiple modules deployed within the same PR
+#    (this script needs the pr_number positional parameter to identify all the modules associated with that PR).
 # 3. All STAGING envs deployment.
 #    In this case, all files in the staging directories (STABLE and DEVELOPMENT) will be deleted.
 #    (this script needs the --all flag).
@@ -54,14 +54,14 @@ else
     pr_number="$1"
     # Pr number is provided: delete all files associated with that pr_number
     # Define regex to find all manifests of env versions associated with the pr_number
-    regex=".*/.*-pr${pr_number}[^0-9]*/${MANIFEST_FILE_NAME}$"
-    # We need to find both DEVELOPMENT and STABLE environments.
-    # The DEVELOPMENT environment directory is ENV_DIR (because we run this within a workflow without
+    regex=".*/.*-pr${pr_number}[^0-9]*/${FILES_MANIFEST_NAME}$"
+    # We need to find both DEVELOPMENT and STABLE modules.
+    # The DEVELOPMENT module directory is APP_DIR (because we run this within a workflow without
     # is_stable and its default value is false)
-    # The STABLE environment directory is derived from ENV_DIR by removing the DEVELOPMENT_STAGING_BASE_DIR
+    # The STABLE module directory is derived from APP_DIR by removing the DEVELOPMENT_STAGING_BASE_DIR
     # prefix and adding the STABLE_STAGING_BASE_DIR prefix instead.
-    development_env_dir="$ENV_DIR"
-    stable_env_dir="$STABLE_STAGING_BASE_DIR/${ENV_DIR#$DEVELOPMENT_STAGING_BASE_DIR/}"
+    development_env_dir="$APP_DIR"
+    stable_env_dir="$STABLE_STAGING_BASE_DIR/${APP_DIR#$DEVELOPMENT_STAGING_BASE_DIR/}"
     # Only add directories if they exist, otherwise the find command below would fail
     dirs=()
     if [[ -d "$development_env_dir" ]]; then

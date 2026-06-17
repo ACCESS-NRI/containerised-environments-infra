@@ -151,7 +151,7 @@ jobs:
       STABLE_PRODUCTION_BASE_DIR: '${{ vars.STABLE_PRODUCTION_BASE_DIR }}'
       MODULE_NAME: '${{ inputs.environment }}'
       MODULE_VERSION: '${{ inputs.version }}'
-      ENV_TYPE: ${{ inputs.is_stable == true && 'STABLE' || 'DEVELOPMENT' }}
+      MODULE_TYPE: ${{ inputs.is_stable == true && 'STABLE' || 'DEVELOPMENT' }}
       HPC_TARGET: ${{ matrix.hpc-target }}
       STARTED_AT: ${{ needs.get-date.outputs.date }}
     steps:

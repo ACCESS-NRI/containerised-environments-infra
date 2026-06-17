@@ -15,34 +15,34 @@ Triggered from commit [{{ commit_sha }}]({{ commit_url }}). For further details,
 {% for hpc_target in hpc_targets %}
 ### :desktop_computer: {{ hpc_target.name }}
 
-| Environment Name | Environment Version | Environment Type | Deployment Stage | Status |
+| Module Name | Module Version | Module Type | Deployment Stage | Status |
 |---|---|---|---|---|
 {%- for deployment in hpc_target.deployments %}
-| {{ deployment.env_name }} | {{ deployment.env_version }} | {{ deployment.env_type }} | {{ deployment.deployment_stage }} | {{ ':white_check_mark:' if deployment.success == 'true' else ':x:' }} |
+| {{ deployment.module_name }} | {{ deployment.module_version }} | {{ deployment.module_type }} | {{ deployment.deployment_stage }} | {{ ':white_check_mark:' if deployment.success == 'true' else ':x:' }} |
 {%- endfor %}
 
 {% endfor %}
 
 {% if n_successful > 0 %}
 ---
-### :memo: Environment Usage Instructions
+### :memo: Module Usage Instructions
 
 {% for hpc_target in hpc_targets %}
   {% for deployment in hpc_target.deployments %}
     {% if deployment.success == 'true' %}
       {% if n_successful == 1 %}
-#### {{ deployment.env_name }}/{{ deployment.env_version }} on {{ hpc_target.name }}
+#### {{ deployment.module_name }}/{{ deployment.module_version }} on {{ hpc_target.name }}
 
 ```
-{{ deployment.env_usage_instructions }}
+{{ deployment.module_usage_instructions }}
 ```
 
       {% else %}
 <details>
-<summary><b>{{ deployment.env_name }}/{{ deployment.env_version }} on {{ hpc_target.name }}</b></summary>
+<summary><b>{{ deployment.module_name }}/{{ deployment.module_version }} on {{ hpc_target.name }}</b></summary>
 
 ```
-{{ deployment.env_usage_instructions }}
+{{ deployment.module_usage_instructions }}
 ```
 
 </details>
