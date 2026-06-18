@@ -8,7 +8,7 @@ description: |
 inputs:
   hpc-target-deployment-info-json-dir:
     description: |
-      Directory containing all the hpc target deployment information JSON files to use for the creation
+      Directory containing all the deployment information JSON files to use for the creation
       of the all_deployments_info JSON file.
     required: true
   started-at:
