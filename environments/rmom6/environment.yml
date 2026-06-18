@@ -3,6 +3,7 @@ channels:
   - accessnri
   - conda-forge
 dependencies:
+  - copernicusmarine
   - esmpy
   - jupyter
   - matplotlib

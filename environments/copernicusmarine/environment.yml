@@ -1,6 +1,0 @@
-name: copernicusmarine
-channels:
-  - accessnri
-  - conda-forge
-dependencies:
-  - copernicusmarine
