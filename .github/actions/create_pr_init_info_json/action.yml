@@ -28,15 +28,6 @@ runs:
       run: |
         started_at=$(TZ='Australia/Sydney' date '+%FT%T %Z')
         echo "started_at=$started_at" >> $GITHUB_OUTPUT
-    
-    # Checkout this repository.
-    # This makes sure we can use this action also from other repositories
-    - name: Checkout containerised-environments-infra repo
-      uses: actions/checkout@v6
-      with:
-        ref: ${{ inputs.ref || github.sha }}
-        repository: access-nri/containerised-environments-infra
-        path: .__action_create_pr_init_info_json
 
     - name: Create pr_init_info JSON
       shell: bash
@@ -59,6 +50,15 @@ runs:
             workflow_url:       $workflow_url,
             started_at:         $started_at
           }' > "$OUTPUT_FILE"
+
+    # Checkout this repository.
+    # This makes sure we can use this action also from other repositories
+    - name: Checkout containerised-environments-infra repo
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ inputs.ref || github.sha }}
+        repository: access-nri/containerised-environments-infra
+        path: .__action_create_pr_init_info_json
 
     - name: Validate JSON against schema
       id: validate-json
