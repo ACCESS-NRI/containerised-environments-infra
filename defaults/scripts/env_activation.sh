@@ -14,7 +14,7 @@ export CONDA_DEFAULT_ENV="$env_path"
 export CONDA_PREFIX="$env_path"
 export CONDA_PROMPT_MODIFIER="__ENV_PROMPT_MODIFIER__"
 
-for file in "$env_path"/conda/activate.d/*.sh; do
+for file in "$env_path"/etc/conda/activate.d/*.sh; do
     if [ -r "$file" ]; then
         . "$file"
     fi
