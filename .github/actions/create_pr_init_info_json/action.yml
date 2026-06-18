@@ -8,6 +8,12 @@ inputs:
     description: "Path to write the output JSON file"
     required: false
     default: pr_init_info.json
+  ref:
+    description: |
+      The git reference to use to check the containerised-environments-infra repository.
+      If not provided, github.sha will be used.
+    type: string
+    required: false
 outputs:
   output-file:
     description: "Path to the created JSON file"
@@ -23,6 +29,15 @@ runs:
         started_at=$(TZ='Australia/Sydney' date '+%FT%T %Z')
         echo "started_at=$started_at" >> $GITHUB_OUTPUT
     
+    # Checkout this repository.
+    # This makes sure we can use this action also from other repositories
+    - name: Checkout containerised-environments-infra repo
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ inputs.ref || github.sha }}
+        repository: access-nri/containerised-environments-infra
+        path: .__action_create_pr_init_info_json
+
     - name: Create pr_init_info JSON
       shell: bash
       env:
@@ -49,7 +64,7 @@ runs:
       id: validate-json
       shell: bash
       env:
-        SCHEMA_PR_INIT_INFO: infrastructure/json_schemas/pr_init_info.schema.json
+        SCHEMA_PR_INIT_INFO: ${{ github.workspace }}/.__action_create_pr_init_info_json/infrastructure/json_schemas/pr_init_info.schema.json
         OUTPUT_FILE: ${{ inputs.output-file }}
       run: |
         npx ajv-cli@5.0.0 validate \

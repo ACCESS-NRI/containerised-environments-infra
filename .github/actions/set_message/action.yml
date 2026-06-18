@@ -20,7 +20,9 @@ inputs:
     type: string
     required: true
   ref:
-    description: The git reference to use to check this repository. If not provided, github.sha will be used.
+    description: |
+      The git reference to use to check the containerised-environments-infra repository.
+      If not provided, github.sha will be used.
     type: string
     required: false
 
