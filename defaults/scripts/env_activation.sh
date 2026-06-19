@@ -12,7 +12,7 @@ export CONDA_DEFAULT_ENV="$env_path"
 # so they are always set correctly within the internal environment, even if the module is not loaded
 # (e.g., if an environment executable is run using its full path without loading the module)
 export CONDA_PREFIX="$env_path"
-export CONDA_PROMPT_MODIFIER="__ENV_PROMPT_MODIFIER__"
+export CONDA_PROMPT_MODIFIER='__ENV_PROMPT_MODIFIER__'
 
 for file in "$env_path"/etc/conda/activate.d/*.sh; do
     if [ -r "$file" ]; then
