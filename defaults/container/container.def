@@ -39,6 +39,7 @@ Bootstrap: scratch
     mkdir -p ${SINGULARITY_ROOTFS}/var/run/munge
 
 %runscript
+    #!/usr/bin/bash
     # Source the environment activation script
     if [ -n "$ENV_ACTIVATION_SCRIPT" ]; then
         if [ -f "$ENV_ACTIVATION_SCRIPT" ]; then
