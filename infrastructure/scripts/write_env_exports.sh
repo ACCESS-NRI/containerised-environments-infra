@@ -70,4 +70,5 @@ export CONTAINERISED_ENVS_ROOT_DIR_NAME='$containerised_envs_root_dir_name'
 export APPS_DIR_NAME='$apps_dir_name'
 export MODULES_DIR_NAME='$modules_dir_name'
 export FUNCTIONS_PATH='$functions_path'
+export PAYU_TELEMETRY_CONFIG_PATH='$PAYU_TELEMETRY_CONFIG_PATH'
 EOF

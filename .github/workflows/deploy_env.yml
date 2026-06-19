@@ -154,6 +154,7 @@ jobs:
       MODULE_TYPE: ${{ inputs.is_stable == true && 'STABLE' || 'DEVELOPMENT' }}
       HPC_TARGET: ${{ matrix.hpc-target }}
       STARTED_AT: ${{ needs.get-date.outputs.date }}
+      PAYU_TELEMETRY_CONFIG_PATH: '${{ secrets.PAYU_TELEMETRY_CONFIG_PATH }}'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6

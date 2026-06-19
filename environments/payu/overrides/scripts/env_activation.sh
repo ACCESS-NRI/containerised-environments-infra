@@ -11,10 +11,12 @@ export CONDA_DEFAULT_ENV="$env_path"
 # Set CONDA_PREFIX
 export CONDA_PREFIX="$env_path"
 # Set CONDA_PROMPT_MODIFIER
-export CONDA_PROMPT_MODIFIER="__ENV_PROMPT_MODIFIER__"
+export CONDA_PROMPT_MODIFIER='__ENV_PROMPT_MODIFIER__'
 
 # Payu specific environment variables
-export ENV_LAUNCHER_SCRIPT_PATH="__LAUNCHER_SCRIPT_PATH__"
+export ENV_LAUNCHER_SCRIPT_PATH='__LAUNCHER_SCRIPT_PATH__'
+export PAYU_TELEMETRY_CONFIG_PATH='__PAYU_TELEMETRY_CONFIG_PATH__'
+export PAYU_TELEMETRY_ENV_VERSION='__MODULE_VERSION__'
 
 for file in "$env_path"/etc/conda/activate.d/*.sh; do
     if [ -r "$file" ]; then
