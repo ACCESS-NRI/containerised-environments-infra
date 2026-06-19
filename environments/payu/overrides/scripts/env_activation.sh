@@ -16,7 +16,7 @@ export CONDA_PROMPT_MODIFIER="__ENV_PROMPT_MODIFIER__"
 # Payu specific environment variables
 export ENV_LAUNCHER_SCRIPT_PATH="__LAUNCHER_SCRIPT_PATH__"
 
-for file in "$env_path"/conda/activate.d/*.sh; do
+for file in "$env_path"/etc/conda/activate.d/*.sh; do
     if [ -r "$file" ]; then
         . "$file"
     fi
