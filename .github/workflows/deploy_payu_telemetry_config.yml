@@ -82,7 +82,7 @@ jobs:
         run: echo "Production deployment approved."
 
   deploy:
-    needs: [check-hpc-targets, get-telemetry-config]
+    needs: [check-hpc-targets, get-telemetry-config, approval-for-production-deployment]
     runs-on: ubuntu-latest
     concurrency:
       group: "payu-telemetry-config-deployment-${{ matrix.hpc-target }}"
