@@ -38,6 +38,10 @@ cleanup_env() {
 register_exit_trap_cmd cleanup_env $TRAP_PRIORITY_LAST
 
 echo 'Initialising directories...'
+if [[ ! -d "$BASE_DIR" ]]; then
+    mkdir -p "$BASE_DIR"
+    set_perms "$BASE_DIR"
+fi
 mkdir -pv "$APP_VERSION_DIR"
 mkdir -pv "$MODULE_DIR"
 mkdir -pv "$ENV_BIN_DIR"

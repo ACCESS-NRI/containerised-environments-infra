@@ -25,29 +25,28 @@ fi
 # Make functions available
 source "$FUNCTIONS_PATH"
 
-# Set BASE_DIR depending on the deployment stage and module type:
-# - STABLE module for PRODUCTION --> $STABLE_PRODUCTION_BASE_DIR
-# - STABLE module for STAGING --> $STABLE_STAGING_BASE_DIR
-# - DEVELOPMENT module for PRODUCTION --> $DEVELOPMENT_PRODUCTION_BASE_DIR
-# - DEVELOPMENT module for STAGING --> $DEVELOPMENT_STAGING_BASE_DIR
+# Set all base directories
+staging_subdir_name=staging
+development_subdir_name=prerelease
+export DEVELOPMENT_PRODUCTION_BASE_DIR="$STABLE_PRODUCTION_BASE_DIR/$development_subdir_name"
+export STABLE_STAGING_BASE_DIR="$STABLE_PRODUCTION_BASE_DIR/$staging_subdir_name"
+export DEVELOPMENT_STAGING_BASE_DIR="$STABLE_PRODUCTION_BASE_DIR/$development_subdir_name/$staging_subdir_name"
 
+# Set base directory depending on the module type:
 if [[ "$MODULE_TYPE" == DEVELOPMENT ]]; then
-    if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]]; then
-        # DEVELOPMENT module deployed to PRODUCTION
-        BASE_DIR="$DEVELOPMENT_PRODUCTION_BASE_DIR"
+    if [[ "$DEPLOYMENT_STAGE" == STAGING ]]; then
+        base_dir="$DEVELOPMENT_STAGING_BASE_DIR"
     else
-        # DEVELOPMENT module deployed to STAGING 
-        # Or cases where no deployment takes place (e.g., staging files deletion)
-        BASE_DIR="$DEVELOPMENT_STAGING_BASE_DIR"
+        base_dir="$DEVELOPMENT_PRODUCTION_BASE_DIR"
     fi
-elif [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]]; then
-    # STABLE module deployed to PRODUCTION
-    BASE_DIR="$STABLE_PRODUCTION_BASE_DIR"
 else
-    # STABLE module deployed to STAGING
-    # Or cases where no deployment takes place (e.g., staging files deletion)
-    BASE_DIR="$STABLE_STAGING_BASE_DIR"
+    if [[ "$DEPLOYMENT_STAGE" == STAGING ]]; then
+        base_dir="$STABLE_STAGING_BASE_DIR"
+    else
+        base_dir="$STABLE_PRODUCTION_BASE_DIR"
+    fi
 fi
+export BASE_DIR="$base_dir"
 
 ### Export variables needed also when no deployment takes place (e.g., staging files deletion)
 # Name of the subdirectory where all apps will be stored
