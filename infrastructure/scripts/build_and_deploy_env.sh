@@ -15,7 +15,7 @@ fi
 # Redirect STDOUT and STDERR of this shell to the PBS job log file, to 
 # be able to capture all STDOUT and STDERR of the PBS job without having to wait
 # for the job to end
-exec &> "$PBS_JOB_LOG_FILE"
+exec &> "$JOB_LOG_FILE"
 
 # Set configuration env variables
 source "$INSTALL_CONFIG"

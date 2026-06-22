@@ -13,7 +13,6 @@ source "$FUNCTIONS_PATH"
 directories=(
     "$STABLE_PRODUCTION_BASE_DIR"
     "$ADMIN_DIR"
-    "$LOGS_DIR"
 )
 
 # Create the directories and set the permissions only if they don't already exist
