@@ -18,8 +18,6 @@ defaults_dir="$REPO_PATH/defaults"
 scripts_dir="$defaults_dir/scripts"
 # Path to the infrastructure scripts directory
 infra_scripts_dir="$REPO_PATH/infrastructure/scripts"
-# Name of the development subdirectory
-development_subdir_name=prerelease
 # Path to the install config file
 install_config="$infra_scripts_dir/install_config.sh"
 # Name for the containerised environments root dir
