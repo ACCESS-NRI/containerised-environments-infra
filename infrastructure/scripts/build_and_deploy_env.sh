@@ -43,7 +43,10 @@ if [[ ! -d "$BASE_DIR" ]]; then
     set_perms "$BASE_DIR"
 fi
 mkdir -pv "$APP_VERSION_DIR"
-mkdir -pv "$MODULE_DIR"
+if [[ ! -d "$MODULE_DIR" ]]; then
+    mkdir -p "$MODULE_DIR"
+    set_perms "$MODULE_DIR"
+fi
 mkdir -pv "$ENV_BIN_DIR"
 mkdir -pv "$(dirname "$TEMP_ENV_DIR")"
 
@@ -233,7 +236,7 @@ echo "Environment lock created to: '$ENV_LOCK_FILE_PATH'"
 ### CLEANUP OLDEST DEVELOPMENT ENV FOR PRODUCTION
 source "$INFRA_SCRIPTS_DIR/cleanup_old_dev_env.sh"
 
-### ENSURE RIGHT PERMISSIONS RECURSIVELY FOR MODULE VERSION
+### ENSURE RIGHT PERMISSIONS
 set_perms "$APP_VERSION_DIR"
 
 ### EXPORT ENV VARIABLES FOR HPC TARGET DEPLOYMENT INFO JSON (update_hpc_target_deployment_info trap function)
