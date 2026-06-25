@@ -15,7 +15,7 @@ fi
 # Redirect STDOUT and STDERR of this shell to the PBS job log file, to 
 # be able to capture all STDOUT and STDERR of the PBS job without having to wait
 # for the job to end
-exec &> "$PBS_JOB_LOG_FILE"
+exec &> "$JOB_LOG_FILE"
 
 # Set configuration env variables
 source "$INSTALL_CONFIG"
@@ -38,8 +38,15 @@ cleanup_env() {
 register_exit_trap_cmd cleanup_env $TRAP_PRIORITY_LAST
 
 echo 'Initialising directories...'
+if [[ ! -d "$BASE_DIR" ]]; then
+    mkdir -p "$BASE_DIR"
+    set_perms "$BASE_DIR"
+fi
 mkdir -pv "$APP_VERSION_DIR"
-mkdir -pv "$MODULE_DIR"
+if [[ ! -d "$MODULE_DIR" ]]; then
+    mkdir -p "$MODULE_DIR"
+    set_perms "$MODULE_DIR"
+fi
 mkdir -pv "$ENV_BIN_DIR"
 mkdir -pv "$(dirname "$TEMP_ENV_DIR")"
 
@@ -229,7 +236,7 @@ echo "Environment lock created to: '$ENV_LOCK_FILE_PATH'"
 ### CLEANUP OLDEST DEVELOPMENT ENV FOR PRODUCTION
 source "$INFRA_SCRIPTS_DIR/cleanup_old_dev_env.sh"
 
-### ENSURE RIGHT PERMISSIONS RECURSIVELY FOR MODULE VERSION
+### ENSURE RIGHT PERMISSIONS
 set_perms "$APP_VERSION_DIR"
 
 ### EXPORT ENV VARIABLES FOR HPC TARGET DEPLOYMENT INFO JSON (update_hpc_target_deployment_info trap function)

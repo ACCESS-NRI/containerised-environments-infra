@@ -175,19 +175,6 @@ jobs:
           ssh-key: ${{ secrets.SSH_KEY }}
           ssh-key-passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
 
-      - name: Initialise Admin dirs
-        if: inputs.staging
-        run: |
-          ssh ${{ secrets.USER }}@${{ secrets.HOST }} -i ${{ steps.set-up-hpc-target.outputs.private-key-path }} /bin/bash <<EOT
-            set -euo pipefail
-            if [[ ${CONTAINERISED_ENVS_DEBUG:-0} == 1 ]]; then
-              set -x
-            fi
-            # Set configuration environment
-            source '$REPO_PATH/$ENV_CONFIG_FILENAME'
-            "\$INFRA_SCRIPTS_DIR/initialise_admin_dirs.sh"
-          EOT
-
       - name: Deploy staging environment
         if: inputs.staging
         id: deploy-staging

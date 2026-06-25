@@ -24,17 +24,19 @@ echo "Name: '$pbs_job_name'"
 echo "Project: '$PBS_PROJECT'"
 echo "Storage: '$PBS_STORAGE'"
 
-# Create custom logfile
-export PBS_JOB_LOG_FILE="$LOGS_DIR/${pbs_job_name}.log"
-touch "$PBS_JOB_LOG_FILE"
-# Set a temporary logfile to send the default PBS job logs
+# The logs of a PBS job gets written only after the job completes. 
+# Since we want to print the logs immediately as the processing progresses, we need
+# to create a custom logfile where we send the STDOUT and STDERR of the PBS job to.
+# For this to work, the PBS job script needs to redirect its process STDOUT and STDERR
+# to this logfile (i.e. using `exec &> "$JOB_LOG_FILE"`)
+export JOB_LOG_FILE=$(mktemp)
+# We also create another logfile to send the default PBS job logs to
 temp_pbs_log=$(mktemp)
-# Delete the custom logfile and temporary log file when the script exits.
-trap "rm -vf '$PBS_JOB_LOG_FILE' '$temp_pbs_log'" EXIT
+# Both logfiles will be deleted when this script exits.
+trap "rm -vf '$JOB_LOG_FILE' '$temp_pbs_log'" EXIT
 
-log_filename=$(basename "$PBS_JOB_LOG_FILE")
 # Using ::group:: to start GitHub Actions log grouping
-echo "::group::'$log_filename' log file"
+echo "::group::========= JOB LOGS ========="
 qsub \
   -N $pbs_job_name \
   -P $PBS_PROJECT \
@@ -50,7 +52,7 @@ QID=$!
 
 # Log STDOUT and STDERR of the PBS job log file in real-time
 # stop when the QID process ends
-tail -F "$PBS_JOB_LOG_FILE" --pid=$QID
+tail -F "$JOB_LOG_FILE" --pid=$QID
 
 # Get PBS job exit code
 wait $QID
