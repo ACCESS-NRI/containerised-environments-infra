@@ -13,8 +13,11 @@ fi
 export TRAP_PRIORITY_FIRST=10 # Runs first (Used for setup commands)
 export TRAP_PRIORITY_LAST=90 # Runs last (e.g. used for commands that delete files/folders)
 
-# Set the default DEPLOYMENT_STAGE
-DEPLOYMENT_STAGE=${DEPLOYMENT_STAGE:-}
+# Sanity check on DEPLOYMENT_STAGE
+if [[ "$DEPLOYMENT_STAGE" != STAGING && "$DEPLOYMENT_STAGE" != PRODUCTION ]]; then
+    echo "Error: Invalid DEPLOYMENT_STAGE '$DEPLOYMENT_STAGE'. Must be either 'STAGING' or 'PRODUCTION'." >&2
+    exit 1
+fi
 
 # Sanity check on MODULE_TYPE
 if [[ "$MODULE_TYPE" != STABLE && "$MODULE_TYPE" != DEVELOPMENT ]]; then
@@ -34,16 +37,16 @@ export DEVELOPMENT_STAGING_BASE_DIR="$STABLE_PRODUCTION_BASE_DIR/$development_su
 
 # Set base directory depending on the module type:
 if [[ "$MODULE_TYPE" == DEVELOPMENT ]]; then
-    if [[ "$DEPLOYMENT_STAGE" == STAGING ]]; then
-        base_dir="$DEVELOPMENT_STAGING_BASE_DIR"
-    else
+    if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]]; then
         base_dir="$DEVELOPMENT_PRODUCTION_BASE_DIR"
+    else
+        base_dir="$DEVELOPMENT_STAGING_BASE_DIR"
     fi
 else
-    if [[ "$DEPLOYMENT_STAGE" == STAGING ]]; then
-        base_dir="$STABLE_STAGING_BASE_DIR"
-    else
+    if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]]; then
         base_dir="$STABLE_PRODUCTION_BASE_DIR"
+    else
+        base_dir="$STABLE_STAGING_BASE_DIR"
     fi
 fi
 export BASE_DIR="$base_dir"

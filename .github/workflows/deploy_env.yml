@@ -268,6 +268,7 @@ jobs:
             fi
             # Set configuration environment
             source '$REPO_PATH/$ENV_CONFIG_FILENAME'
+            export DEPLOYMENT_STAGE=STAGING
             # Delete staging files
             "\$INFRA_SCRIPTS_DIR/delete_staging_files.sh" ${{ github.event.number }}
           EOT
