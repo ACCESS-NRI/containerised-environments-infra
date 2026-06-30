@@ -19,6 +19,8 @@
 # Usage:
 #   create_hpc_target_deployment_info_json.sh [--key KEY VALUE]... OUTPUT_JSON_FILE
 
+set -u
+
 usage() {
     cat <<'EOF'
 Usage:
