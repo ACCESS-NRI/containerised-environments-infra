@@ -69,6 +69,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+      
+      - name: Create optional keys
+        if: matrix.success == 'true'
+        run: |
+          # File manifest
+          files_manifest_path="${{ github.workspace }}/files_manifest.txt"
+          printf "file1\nfile2" > "$files_manifest_path"
+          echo FILES_MANIFEST_PATH="$files_manifest_path" >> $GITHUB_ENV
+          # completed_at
+          echo COMPLETED_AT="2026-09-02T17:30:00 GMT+10" >> $GITHUB_ENV
+          # module_usage_instructions
+          echo "MODULE_USAGE_INSTRUCTIONS=module use /path/to/other/modules\nmodule load ${{matrix.module-name}}/${{matrix.module-version}}" >> $GITHUB_ENV
+          # env_lock
+          echo "ENV_LOCK=name: test-dev\nchannels:\n  - accessnri\n  - conda-forge\ndependencies:\n  - python\n  - pip" >> $GITHUB_ENV
 
       - name: Create hpc target deployment info JSON
         env:
@@ -78,10 +92,8 @@ jobs:
           MODULE_TYPE: ${{ matrix.env-type }}
           STARTED_AT: "1992-04-05T23:55:00 GMT+1"
           DEPLOYMENT_STAGE: ${{ matrix.deployment-stage }}
-          MODULE_USAGE_INSTRUCTIONS: "${{ matrix.success == 'true' && format('module use /path/to/other/modules\nmodule load {0}/{1}', matrix.module-name, matrix.module-version) }}"
-          ENV_LOCK: "${{ matrix.success == 'true' && 'name: test-dev\nchannels:\n  - accessnri\n  - conda-forge\ndependencies:\n  - python\n  - pip:\n    - git+https://github.com/access-nri/addmeta.git@master' }}"
           SUCCESS: ${{ matrix.success }}
-        run: bash "$CREATE_HPC_TARGET_DEPLOYMENT_INFO_SCRIPT" "$HPC_TARGET_DEPLOYMENT_INFO_JSON"
+        run: bash "$CREATE_HPC_TARGET_DEPLOYMENT_INFO_SCRIPT" "$HPC_TARGET_DEPLOYMENT_INFO_JSON" ${{ matrix.success == 'true' && '--key env_lock "$ENV_LOCK"' || '' }}
 
       - name: Validate hpc target deployment info JSON against schema
         run: |

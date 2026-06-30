@@ -19,7 +19,10 @@
 # Usage:
 #   create_hpc_target_deployment_info_json.sh [--key KEY VALUE]... OUTPUT_JSON_FILE
 
-set -u
+set -euo pipefail
+if [[ "${CONTAINERISED_ENVS_DEBUG:-0}" == "1" ]]; then
+    set -x
+fi
 
 usage() {
     cat <<'EOF'
