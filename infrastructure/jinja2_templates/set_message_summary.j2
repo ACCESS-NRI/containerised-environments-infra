@@ -12,7 +12,7 @@ To use the module on _{{ name }}_, run the following commands:
 {{ deployment.module_usage_instructions }}
 ```
 
-{% if deployment.env_lock %}
+{% if 'env_lock' in deployment %}
 <details>
 <summary><b>Environment lock</b></summary>
 
