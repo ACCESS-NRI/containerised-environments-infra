@@ -13,7 +13,6 @@
 # When SUCCESS is "true", the following env vars must also be set:
 # - MODULE_USAGE_INSTRUCTIONS
 # - FILES_MANIFEST_PATH
-# - COMPLETED_AT
 #
 #
 # Usage:
@@ -102,9 +101,10 @@ deployment_json="$("$JQ_EXE" -n \
 
 # Add keys if SUCCESS is true
 if [[ $SUCCESS == true ]]; then
+    completed_at="$(TZ='Australia/Sydney' date '+%FT%T %Z')"
     files_manifest_content="$(<"$FILES_MANIFEST_PATH")"
     deployment_json="$(printf '%s' "$deployment_json" | "$JQ_EXE" \
-        --arg completed_at "$COMPLETED_AT" \
+        --arg completed_at "$completed_at" \
         --arg module_usage_instructions "$MODULE_USAGE_INSTRUCTIONS" \
         --arg files_manifest "$files_manifest_content" \
         '.deployments[0].completed_at = $completed_at

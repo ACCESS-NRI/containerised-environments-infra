@@ -77,8 +77,6 @@ jobs:
           files_manifest_path="${{ github.workspace }}/files_manifest.txt"
           printf "file1\nfile2" > "$files_manifest_path"
           echo FILES_MANIFEST_PATH="$files_manifest_path" >> $GITHUB_ENV
-          # completed_at
-          echo COMPLETED_AT="2026-09-02T17:30:00 GMT+10" >> $GITHUB_ENV
           # module_usage_instructions
           echo "MODULE_USAGE_INSTRUCTIONS=module use /path/to/other/modules\nmodule load ${{matrix.module-name}}/${{matrix.module-version}}" >> $GITHUB_ENV
           # env_lock
