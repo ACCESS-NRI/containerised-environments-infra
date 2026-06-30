@@ -15,14 +15,11 @@
       "items": {
         "type": "object",
         "required": [
-            "module_name", 
-            "module_version", 
-            "module_type", 
-            "deployment_stage", 
-            "module_usage_instructions", 
-            "files_manifest",
+            "module_name",
+            "module_version",
+            "module_type",
+            "deployment_stage",
             "started_at",
-            "completed_at",
             "success"
         ],
         "additionalProperties": true,
@@ -68,7 +65,24 @@
             "enum": ["true", "false", ""],
             "description": "Indicates whether the deployment was successful"
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "success": { "const": "true" }
+              },
+              "required": ["success"]
+            },
+            "then": {
+              "required": [
+                "module_usage_instructions",
+                "files_manifest",
+                "completed_at"
+              ]
+            }
+          }
+        ]
       }
     }
   }
