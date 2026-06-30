@@ -11,15 +11,4 @@ To use the module on _{{ name }}_, run the following commands:
 ```
 {{ deployment.module_usage_instructions }}
 ```
-
-{% if 'env_lock' in deployment %}
-<details>
-<summary><b>Environment lock</b></summary>
-
-```yaml
-{{ deployment.env_lock }}
-```
-
-</details>
-{% endif %}
 {% endfor %}
