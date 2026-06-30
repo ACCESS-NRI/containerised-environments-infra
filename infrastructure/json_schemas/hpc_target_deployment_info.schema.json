@@ -20,30 +20,53 @@
             "module_type", 
             "deployment_stage", 
             "module_usage_instructions", 
-            "env_lock",
+            "files_manifest",
             "started_at",
             "completed_at",
             "success"
         ],
-        "additionalProperties": false,
+        "additionalProperties": true,
         "properties": {
-          "module_name": { "type": "string", "minLength": 1 },
-          "module_version": { "type": "string", "minLength": 1 },
+          "module_name": { 
+            "type": "string", 
+            "minLength": 1,
+            "description": "Name of the deployed module"
+          },
+          "module_version": { 
+            "type": "string", 
+            "minLength": 1,
+            "description": "Version of the deployed module"
+          },
           "module_type": {
             "type": "string",
-            "enum": ["DEVELOPMENT", "STABLE"]
+            "enum": ["DEVELOPMENT", "STABLE"],
+            "description": "Type of the deployed module. DEVELOPMENT modules are for testing and may be unstable, while STABLE modules are production-ready."
           },
           "deployment_stage": {
             "type": "string",
-            "enum": ["STAGING", "PRODUCTION"]
+            "enum": ["STAGING", "PRODUCTION"],
+            "description": "Deployment stage of the deployed module. STAGING modules are deployed in a staging folder for testing before being deployed to PRODUCTION."
           },
-          "module_usage_instructions": { "type": "string" },
-          "env_lock": { "type": "string" },
-          "started_at": { "type": "string", "minLength": 1 },
-          "completed_at": { "type": "string" },
+          "module_usage_instructions": {
+            "type": "string",
+            "description": "Instructions for using the deployed module"
+          },
+          "files_manifest": {
+            "type": "string",
+            "description": "Manifest of files and folders included in the deployment"
+          },
+          "started_at": {
+            "type": "string", "minLength": 1,
+            "description": "Timestamp when the deployment was started"
+          },
+          "completed_at": {
+            "type": "string",
+            "description": "Timestamp when the deployment was completed"
+          },
           "success": {
             "type": "string",
-            "enum": ["true", "false", ""]
+            "enum": ["true", "false", ""],
+            "description": "Indicates whether the deployment was successful"
           }
         }
       }
