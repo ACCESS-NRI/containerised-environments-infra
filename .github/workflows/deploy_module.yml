@@ -284,17 +284,18 @@ jobs:
         # (e.g., closed PR)
         if: inputs.production == true || inputs.staging == false
         run: |
-          ssh ${{ secrets.USER }}@${{ secrets.HOST }} -i ${{ steps.set-up-hpc-target.outputs.private-key-path }} /bin/bash <<EOT
+          ssh hpc <<'HPC_SSH_EOF'
             set -euo pipefail
-            if [[ ${CONTAINERISED_ENVS_DEBUG:-0} == 1 ]]; then
+            if [[ '${{env.CONTAINERISED_ENVS_DEBUG}}' == 1 ]]; then
               set -x
             fi
-            # Set configuration environment
-            source '$REPO_PATH/$ENV_CONFIG_FILENAME'
+            # GitHub runner environment export
+            source '${{ env.GH_ENV_EXPORT_SCRIPT }}'
+            # Set DEPLOYMENT_STAGE
             export DEPLOYMENT_STAGE=STAGING
             # Delete staging files
-            "\$INFRA_SCRIPTS_DIR/delete_staging_files.sh" ${{ github.event.number }}
-          EOT
+            "$INFRA_SCRIPTS_DIR/delete_staging_files.sh" ${{ github.event.number }}
+          HPC_SSH_EOF
     
       # Delete the temporary exchange directory that we created on the HPC system
       - name: Delete temporary exchange directory on HPC system

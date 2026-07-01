@@ -162,38 +162,39 @@ jobs:
       id: set-up-ssh
       with:
         hosts: |
-          ${{ env.HOST }}
-          ${{ env.HOST_DATA }}
+          ${{ env.HOST }}:hpc
+          ${{ env.HOST_DATA }}:hpc-data
         private-key: ${{ env.SSH_KEY }}
         private-key-passphrase: ${{ env.SSH_KEY_PASSPHRASE }}
     
-    - name: Create payu telemetry config parent directory
-      run: |
-        ssh $USER@$HOST \
-          -i ${{ steps.set-up-ssh.outputs.private-key-path }} \
-          mkdir -p $(dirname $PAYU_TELEMETRY_CONFIG_PATH)
-    
     - name: Deploy telemetry config
       run: |
-        rsync -e 'ssh -i ${{ steps.set-up-ssh.outputs.private-key-path }}' \
-          -avz \
-          $TELEMETRY_CONFIG_NAME \
-          "$USER@${{ env.HOST_DATA || env.HOST }}:$PAYU_TELEMETRY_CONFIG_PATH"
+        # Create payu telemetry config parent directory
+        ssh hpc 'mkdir -p $(dirname ${{env.PAYU_TELEMETRY_CONFIG_PATH}})'
+        # Deploy telemetry config to HPC target
+        rsync \
+          -avh \
+          --no-perms \
+          --no-owner \
+          --no-group \
+          "$TELEMETRY_CONFIG_NAME" hpc-data:"$PAYU_TELEMETRY_CONFIG_PATH"
 
     - name: Set permissions
       run: |
-        ssh $USER@$HOST \
-          -i ${{ steps.set-up-ssh.outputs.private-key-path }} << EOF
-        set -euo pipefail
-        set -x
-        # Reset existing acls
-        setfacl -b '$PAYU_TELEMETRY_CONFIG_PATH'
-        # Change group ownership
-        chgrp '$GROUP_OWNER' '$PAYU_TELEMETRY_CONFIG_PATH'
-        # Define permissions
-        acls='u::rw-' # rw- for user
-        acls+=',g::r--' # r-- for group
-        acls+=',o::---' # no permissions for others
-        # Set permissions
-        setfacl -m \$acls '$PAYU_TELEMETRY_CONFIG_PATH'
+        ssh hpc << 'HPC_SSH_EOF'
+          set -euo pipefail
+          if [[ '${{env.CONTAINERISED_ENVS_DEBUG}}' == 1 ]]; then
+            set -x
+          fi
+          # Reset existing acls
+          setfacl -b '${{env.PAYU_TELEMETRY_CONFIG_PATH}}'
+          # Change group ownership
+          chgrp "$GROUP_OWNER" "$arg"
+          chgrp '${{env.GROUP_OWNER}}' '${{env.PAYU_TELEMETRY_CONFIG_PATH}}'
+          # Define permissions
+          acls='u::rw-' # rw- for user
+          acls+=',g::r--' # r-- for group
+          acls+=',o::---' # no permissions for others
+          # Set permissions
+          setfacl -m "$acls" '${{env.PAYU_TELEMETRY_CONFIG_PATH}}'
         EOF
