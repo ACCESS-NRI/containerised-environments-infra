@@ -1,0 +1,7 @@
+name: palsr
+channels:
+  - me-org
+  - conda-forge
+  - nodefaults
+dependencies:
+  - me-org::r-meorg==1.0.4
