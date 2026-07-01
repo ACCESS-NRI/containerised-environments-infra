@@ -31,7 +31,7 @@ elif [[ ${1:-} != '--all' && ! ${1:-0} =~ ^[0-9]+$ ]]; then
 fi
 
 # Set configuration env variables
-source "$INSTALL_CONFIG"
+source "$INFRA_SCRIPTS_DIR/install_config.sh"
 
 # Delete module files
 if [[ -z "${1:-}" ]]; then

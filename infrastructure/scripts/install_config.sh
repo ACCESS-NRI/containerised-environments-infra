@@ -4,14 +4,16 @@
 # Some of the variables defaults in this script can be overridden for a specific environment using the
 # 'environments/<env_name>/overrides/scripts/default_config.sh' file.
 
-set -euo pipefail
-if [[ "${CONTAINERISED_ENVS_DEBUG:-0}" == 1 ]]; then
-    set -x
-fi
+# Make functions available
+source "$INFRA_SCRIPTS_DIR/functions.sh"
 
 # Set named constant priorities for the register_exit_trap_cmd function
 export TRAP_PRIORITY_FIRST=10 # Runs first (Used for setup commands)
 export TRAP_PRIORITY_LAST=90 # Runs last (e.g. used for commands that delete files/folders)
+
+# Maximum number of DEVELOPMENT module versions to keep in PRODUCTION simultaneously.
+# If a new deployment causes the total to exceed this limit, the oldest version is deleted.
+export MAX_N_DEV_VERSIONS=3
 
 # Sanity check on DEPLOYMENT_STAGE
 if [[ "$DEPLOYMENT_STAGE" != STAGING && "$DEPLOYMENT_STAGE" != PRODUCTION ]]; then
@@ -25,40 +27,43 @@ if [[ "$MODULE_TYPE" != STABLE && "$MODULE_TYPE" != DEVELOPMENT ]]; then
     exit 1
 fi
 
-# Make functions available
-source "$FUNCTIONS_PATH"
-
-# Set all base directories
+# Set subdirectories
 staging_subdir_name=staging
 development_subdir_name=prerelease
-export DEVELOPMENT_PRODUCTION_BASE_DIR="$STABLE_PRODUCTION_BASE_DIR/$development_subdir_name"
 export STABLE_STAGING_BASE_DIR="$STABLE_PRODUCTION_BASE_DIR/$staging_subdir_name"
 export DEVELOPMENT_STAGING_BASE_DIR="$STABLE_PRODUCTION_BASE_DIR/$development_subdir_name/$staging_subdir_name"
 
 # Set base directory depending on the module type:
 if [[ "$MODULE_TYPE" == DEVELOPMENT ]]; then
     if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]]; then
-        base_dir="$DEVELOPMENT_PRODUCTION_BASE_DIR"
+        # DEVELOPMENT PRODUCTION
+        base_dir="$STABLE_PRODUCTION_BASE_DIR/$development_subdir_name"
     else
+        # DEVELOPMENT STAGING
         base_dir="$DEVELOPMENT_STAGING_BASE_DIR"
     fi
 else
     if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]]; then
+        # STABLE PRODUCTION
         base_dir="$STABLE_PRODUCTION_BASE_DIR"
     else
+        # STABLE STAGING
         base_dir="$STABLE_STAGING_BASE_DIR"
     fi
 fi
 export BASE_DIR="$base_dir"
 
 ### Export variables needed also when no deployment takes place (e.g., staging files deletion)
+# Path to default files within the repository
+export DEFAULTS_DIR="$REPO_PATH/defaults"
+# Path to the default scripts folder wihtin the repository
+default_scripts_dir="$DEFAULTS_DIR/scripts"
+# Name for the containerised environments root dir
+containerised_envs_root_dir_name=containerised_envs
 # Name of the subdirectory where all apps will be stored
-export APPS_DIR="$BASE_DIR/$APPS_DIR_NAME"
-# Full path of the directory where the containerised environments infrastructure
-# is stored. It usually contains the executable used for environment
-# management/creation, as well as configuration and files for each different 
-# existing environment
-containerised_envs_root_dir="$APPS_DIR/$CONTAINERISED_ENVS_ROOT_DIR_NAME"
+export APPS_DIR="$BASE_DIR/apps"
+# Full path of the directory where the containerised environments infrastructure is stored.
+containerised_envs_root_dir="$APPS_DIR/$containerised_envs_root_dir_name"
 # Path to the directory containing all versions of the app
 export APP_DIR="$containerised_envs_root_dir/envs/$MODULE_NAME"
 # Path to the directory containing the specific version of the app
@@ -79,7 +84,7 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
     export ENV_OVERRIDES_DIR="$env_folder/overrides"
 
     # Source the specific environment configuration
-    default_config_file="$SCRIPTS_DIR/default_config.sh"
+    default_config_file="$default_scripts_dir/default_config.sh"
     default_env_config_file=$(
         get_overrides_or_defaults "$default_config_file" \
         "No environment configuration script '${default_config_file#$DEFAULTS_DIR/}' found in the repository's defaults or environment overrides."
@@ -100,7 +105,7 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
 
     # Absolute path where the environment will be located within the container
     # This path is added as an overlay when overlaying the squashfs to the container
-    export INTERNAL_ENV_DIR=${INTERNAL_ENV_DIR:-"/$CONTAINERISED_ENVS_ROOT_DIR_NAME/$MODULE_NAME/$MODULE_VERSION"}
+    export INTERNAL_ENV_DIR=${INTERNAL_ENV_DIR:-"/$containerised_envs_root_dir_name/$MODULE_NAME/$MODULE_VERSION"}
     # Sanity check on INTERNAL_ENV_DIR being an absolute path
     if [[ "$INTERNAL_ENV_DIR" != /* ]]; then
         echo "INTERNAL_ENV_DIR must be an absolute path (must start with a forward slash). Got '$INTERNAL_ENV_DIR'" >&2
@@ -112,7 +117,7 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
     export TEMP_ENV_DIR="${TEMP_WORKING_DIR}${INTERNAL_ENV_DIR}"
 
     # Full path of the directory where all module files will be stored
-    export ALL_MODULES_DIR="$BASE_DIR/$MODULES_DIR_NAME"
+    export ALL_MODULES_DIR="$BASE_DIR/modules"
     # Full path of the directory where the specific module will be stored
     export MODULE_DIR="$ALL_MODULES_DIR/$MODULE_NAME"
     # Full path of the modulefile
@@ -124,7 +129,7 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
     # Path of the environment activation script that gets run when users load the module
     export ACTIVATION_SCRIPT_PATH="$MODULE_DIR/$activation_script_name"
     # Path of the default environment activation script within the repository
-    export REPO_ACTIVATION_SCRIPT_PATH="$SCRIPTS_DIR/env_activation.sh"
+    export REPO_ACTIVATION_SCRIPT_PATH="$default_scripts_dir/env_activation.sh"
     # Path to the default modules directory within the repository
     export REPO_MODULES_DIR="$DEFAULTS_DIR/modules"
     # Path to the default modulefile within the repository
@@ -141,10 +146,10 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
     # Path to the launcher script
     export LAUNCHER_SCRIPT_PATH="$ENV_BIN_DIR/$LAUNCHER_SCRIPT_NAME"
     # Path to the defaults launcher script within the repository
-    export REPO_LAUNCHER_SCRIPT_PATH="$SCRIPTS_DIR/$LAUNCHER_SCRIPT_NAME"
+    export REPO_LAUNCHER_SCRIPT_PATH="$default_scripts_dir/$LAUNCHER_SCRIPT_NAME"
 
     # Path of the deployment post script
-    export DEPLOYMENT_POST_SCRIPT_PATH="$SCRIPTS_DIR/deployment_post_script.sh"
+    export DEPLOYMENT_POST_SCRIPT_PATH="$default_scripts_dir/deployment_post_script.sh"
 
     # Path to the defaults built container image in the repository.
     # This image is automatically built by the build_container_image.yml workflow
@@ -193,10 +198,6 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
         fi
     fi
     export ENV_FILE="$env_spec_path"
-
-    # Maximum number of DEVELOPMENT module versions to keep in PRODUCTION simultaneously.
-    # If a new deployment causes the total to exceed this limit, the oldest version is deleted.
-    export MAX_DEV_MODULE_VERSIONS=3
 
     ### Micromamba initialisation
     export MAMBA_EXE="${MAMBA_EXE:-}"
@@ -287,7 +288,7 @@ if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING 
     export HOST_EXECUTABLES="${HOST_EXECUTABLES:-$default_host_executables}"
     
     # Source the additional environment configuration
-    additional_config_file="$SCRIPTS_DIR/additional_config.sh"
+    additional_config_file="$default_scripts_dir/additional_config.sh"
     additional_env_config_file=$(
         get_overrides_or_defaults "$additional_config_file" \
         "No additional environment configuration script '${additional_config_file#$DEFAULTS_DIR/}' found in the repository's defaults or environment overrides."

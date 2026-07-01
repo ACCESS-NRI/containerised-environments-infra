@@ -18,7 +18,7 @@ fi
 exec &> "$JOB_LOG_FILE"
 
 # Set configuration env variables
-source "$INSTALL_CONFIG"
+source "$INFRA_SCRIPTS_DIR/install_config.sh"
 
 ### Initialise directories
 # Make sure the target module directory does not already exist, to avoid accidentally overwriting an existing environment.
@@ -236,7 +236,7 @@ source "$INFRA_SCRIPTS_DIR/generate_env_lock.sh"
 echo "Environment lock created to: '$ENV_LOCK_FILE_PATH'"
 
 ### CLEANUP OLDEST DEVELOPMENT ENV FOR PRODUCTION
-source "$INFRA_SCRIPTS_DIR/cleanup_old_dev_env.sh"
+source "$INFRA_SCRIPTS_DIR/cleanup_old_dev_module.sh"
 
 ### ENSURE RIGHT PERMISSIONS
 set_perms "$APP_VERSION_DIR"
