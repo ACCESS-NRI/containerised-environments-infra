@@ -8,6 +8,8 @@
 # - MODULE_TYPE
 # - DEPLOYMENT_STAGE
 # - STARTED_AT
+# - DEPLOYMENT_WORKFLOW_RUN_ID
+# - COMMIT_SHA
 # - SUCCESS
 #
 # When SUCCESS is "true", the following env vars must also be set:
@@ -85,6 +87,8 @@ deployment_json="$("$JQ_EXE" -n \
     --arg stage "$DEPLOYMENT_STAGE" \
     --arg started_at "$STARTED_AT" \
     --arg success "$SUCCESS" \
+    --arg deployment_workflow_run_id "$DEPLOYMENT_WORKFLOW_RUN_ID" \
+    --arg commit_sha "$COMMIT_SHA" \
     '{
         "name": $target,
         "deployments": [
@@ -94,7 +98,9 @@ deployment_json="$("$JQ_EXE" -n \
                 "module_type": $type,
                 "deployment_stage": $stage,
                 "started_at": $started_at,
-                "success": $success
+                "success": $success,
+                "deployment_workflow_run_id": $deployment_workflow_run_id,
+                "commit_sha": $commit_sha
             }
         ]
     }')"

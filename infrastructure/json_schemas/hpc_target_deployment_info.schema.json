@@ -20,7 +20,9 @@
             "module_type",
             "deployment_stage",
             "started_at",
-            "success"
+            "success",
+            "deployment_workflow_run_id",
+            "commit_sha"
         ],
         "additionalProperties": true,
         "properties": {
@@ -64,6 +66,14 @@
             "type": "string",
             "enum": ["true", "false", ""],
             "description": "Indicates whether the deployment was successful"
+          },
+          "deployment_workflow_run_id": {
+            "type": "string",
+            "description": "The ID of the workflow run that triggered the deployment"
+          },
+          "commit_sha": {
+            "type": "string",
+            "description": "The SHA of the commit that triggered the deployment"
           }
         },
         "allOf": [

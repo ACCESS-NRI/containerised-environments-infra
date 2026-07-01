@@ -91,6 +91,8 @@ jobs:
           STARTED_AT: "1992-04-05T23:55:00 GMT+1"
           DEPLOYMENT_STAGE: ${{ matrix.deployment-stage }}
           SUCCESS: ${{ matrix.success }}
+          DEPLOYMENT_WORKFLOW_RUN_ID: ${{ github.run_id }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: bash "$CREATE_HPC_TARGET_DEPLOYMENT_INFO_SCRIPT" "$HPC_TARGET_DEPLOYMENT_INFO_JSON" ${{ matrix.success == 'true' && '--key env_lock "$ENV_LOCK"' || '' }}
 
       - name: Validate hpc target deployment info JSON against schema
