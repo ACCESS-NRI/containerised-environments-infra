@@ -3,6 +3,7 @@
 # The values for the JSON file fields are taken from the following env variables:
 #
 # - HPC_TARGET
+# - HPC_NAME
 # - MODULE_NAME
 # - MODULE_VERSION
 # - MODULE_TYPE
@@ -89,8 +90,9 @@ deployment_json="$("$JQ_EXE" -n \
     --arg success "$SUCCESS" \
     --arg deployment_workflow_run_id "$DEPLOYMENT_WORKFLOW_RUN_ID" \
     --arg commit_sha "$COMMIT_SHA" \
+    --arg hpc_name "$HPC_NAME" \
     '{
-        "name": $target,
+        "target": $target,
         "deployments": [
             {
                 "module_name": $name,
@@ -100,7 +102,8 @@ deployment_json="$("$JQ_EXE" -n \
                 "started_at": $started_at,
                 "success": $success,
                 "deployment_workflow_run_id": $deployment_workflow_run_id,
-                "commit_sha": $commit_sha
+                "commit_sha": $commit_sha,
+                "hpc_name": $hpc_name
             }
         ]
     }')"

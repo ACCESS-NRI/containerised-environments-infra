@@ -96,7 +96,7 @@ jobs:
       PAYU_TELEMETRY_URL: ${{ secrets.PAYU_TELEMETRY_URL }}
       PAYU_TELEMETRY_PROXY_URL: ${{ secrets.PAYU_TELEMETRY_PROXY_URL }}
       PAYU_TELEMETRY_TOKEN: ${{ secrets.PAYU_TELEMETRY_TOKEN }}
-      PAYU_TELEMETRY_HOSTNAME: ${{ secrets.HPC_NAME }}
+      PAYU_TELEMETRY_HOSTNAME: ${{ vars.HPC_NAME }}
       PAYU_TELEMETRY_CONFIG_PATH: ${{ secrets.PAYU_TELEMETRY_CONFIG_PATH }}
       HOST: ${{ secrets.HOST }}
       HOST_DATA: ${{ secrets.HOST_DATA }}
@@ -126,7 +126,6 @@ jobs:
         check secret PAYU_TELEMETRY_URL
         check secret PAYU_TELEMETRY_PROXY_URL
         check secret PAYU_TELEMETRY_TOKEN
-        check secret PAYU_TELEMETRY_HOSTNAME HPC_NAME
         check secret PAYU_TELEMETRY_CONFIG_PATH
         check secret HOST
         check secret SSH_KEY
@@ -134,6 +133,7 @@ jobs:
         ## Variables
         check variable OWNER
         check variable GROUP_OWNER
+        check variable PAYU_TELEMETRY_HOSTNAME HPC_NAME
         [[ $unset == true ]] && exit 1 || true
     
     - name: Download telemetry config artifact

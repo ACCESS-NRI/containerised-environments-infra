@@ -2,12 +2,12 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "hpc_target_deployment_info.schema.json",
   "type": "object",
-  "required": ["name", "deployments"],
+  "required": ["target", "deployments"],
   "additionalProperties": false,
   "properties": {
-    "name": {
+    "target": {
       "type": "string",
-      "description": "Name of the HPC target for the deployment (e.g. Gadi, Setonix)"
+      "description": "Name of the HPC target (GitHub environment) used for the deployment (e.g., gadi, gadi_testing, etc.)"
     },
     "deployments": {
       "type": "array",
@@ -22,7 +22,8 @@
             "started_at",
             "success",
             "deployment_workflow_run_id",
-            "commit_sha"
+            "commit_sha",
+            "hpc_name"
         ],
         "additionalProperties": true,
         "properties": {
@@ -74,6 +75,10 @@
           "commit_sha": {
             "type": "string",
             "description": "The SHA of the commit that triggered the deployment"
+          },
+          "hpc_name": {
+            "type": "string",
+            "description": "The name of the HPC system where the deployment was made (e.g., gadi, setonix, etc.)"
           }
         },
         "allOf": [
