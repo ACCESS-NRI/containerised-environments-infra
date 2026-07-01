@@ -157,6 +157,7 @@ jobs:
       STARTED_AT: ${{ needs.get-date.outputs.date }}
       PAYU_TELEMETRY_CONFIG_PATH: '${{ secrets.PAYU_TELEMETRY_CONFIG_PATH }}'
       DEPLOYMENT_WORKFLOW_RUN_ID: ${{ github.run_id }}
+      DEPLOYMENT_WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - name: Checkout repository

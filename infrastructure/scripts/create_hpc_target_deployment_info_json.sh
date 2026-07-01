@@ -10,6 +10,7 @@
 # - DEPLOYMENT_STAGE
 # - STARTED_AT
 # - DEPLOYMENT_WORKFLOW_RUN_ID
+# - DEPLOYMENT_WORKFLOW_URL
 # - COMMIT_SHA
 # - SUCCESS
 #
@@ -89,6 +90,7 @@ deployment_json="$("$JQ_EXE" -n \
     --arg started_at "$STARTED_AT" \
     --arg success "$SUCCESS" \
     --arg deployment_workflow_run_id "$DEPLOYMENT_WORKFLOW_RUN_ID" \
+    --arg deployment_workflow_url "$DEPLOYMENT_WORKFLOW_URL" \
     --arg commit_sha "$COMMIT_SHA" \
     --arg hpc_name "$HPC_NAME" \
     '{
@@ -102,6 +104,7 @@ deployment_json="$("$JQ_EXE" -n \
                 "started_at": $started_at,
                 "success": $success,
                 "deployment_workflow_run_id": $deployment_workflow_run_id,
+                "deployment_workflow_url": $deployment_workflow_url,
                 "commit_sha": $commit_sha,
                 "hpc_name": $hpc_name
             }

@@ -22,6 +22,7 @@
             "started_at",
             "success",
             "deployment_workflow_run_id",
+            "deployment_workflow_url",
             "commit_sha",
             "hpc_name"
         ],
@@ -71,6 +72,10 @@
           "deployment_workflow_run_id": {
             "type": "string",
             "description": "The ID of the workflow run that triggered the deployment"
+          },
+          "deployment_workflow_url": {
+            "type": "string",
+            "description": "The URL of the workflow run that triggered the deployment"
           },
           "commit_sha": {
             "type": "string",
