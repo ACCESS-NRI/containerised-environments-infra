@@ -124,6 +124,23 @@ jobs:
             echo ""
             cat "${{ steps.set-message-summary.outputs.message-file-path }}"
           ) >> $GITHUB_STEP_SUMMARY
+        
+      - name: Test set_message action for GitHub release message
+        if: matrix.render
+        id: set-message-gh-release
+        uses: ./.github/actions/set_message
+        with:
+          message-type: gh-release
+          data-file: ${{ env.HPC_TARGET_DEPLOYMENT_INFO_JSON }}
+        
+      - name: Set message in the step summary
+        if: matrix.render
+        run: |
+          (
+            echo "# Test GitHub Release"
+            echo ""
+            cat "${{ steps.set-message-gh-release.outputs.message-file-path }}"
+          ) >> $GITHUB_STEP_SUMMARY
 
       - name: Upload hpc target deployment info JSON as artifact
         uses: actions/upload-artifact@v7
