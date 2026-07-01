@@ -1,4 +1,4 @@
-# This file is sourced in the build_and_deploy_env.sh script to cleanup oldest DEVELOPMENT
+# This file is sourced in the build_and_deploy.sh script to cleanup oldest DEVELOPMENT
 # modules for PRODUCTION if the number of dev env versions is greater than MAX_DEV_MODULE_VERSIONS
 
 # Only for DEVELOPMENT envs in PRODUCTION

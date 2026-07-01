@@ -168,6 +168,14 @@ jobs:
           # echo "CONTAINERISED_ENVS_DEBUG=${{ runner.debug }}" >> $GITHUB_ENV
           echo "CONTAINERISED_ENVS_DEBUG=1" >> $GITHUB_ENV
       
+      # This action exports the following environment variables used in subsequent steps:
+      # - TEMP_EXCHANGE_DIR_ON_HPC: path to the temporary exchange directory on the HPC target
+      # - TEMP_EXCHANGE_DIR_ON_GH: path to the temporary exchange directory on the GitHub runner
+      # - DEPLOYMENT_INFO_JSON_ON_HPC: path to the deployment info JSON file on the HPC target
+      # - DEPLOYMENT_INFO_JSON_ON_GH: path to the deployment info JSON file on the GitHub runner
+      # - REPO_PATH: path to this repository clone on the HPC target
+      # - GH_ENV_EXPORT_SCRIPT: path on the HPC target of the bash script sourced to export variables
+      #   from the GitHub runner environment
       - name: Set up HPC target
         uses: ./.github/actions/set_up_hpc_target
         id: set-up-hpc-target
@@ -175,90 +183,101 @@ jobs:
           target-name: ${{ matrix.hpc-target }}
           user: ${{ secrets.USER }}
           host: ${{ secrets.HOST }}
-          host-data: ${{ secrets.HOST_DATA || secrets.HOST }}
           ssh-key: ${{ secrets.SSH_KEY }}
           ssh-key-passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          token: ${{ secrets.REPO_CONTENT_READ_TOKEN }}
 
       - name: Deploy staging environment
         if: inputs.staging
         id: deploy-staging
         run: |
-          # Run deployment
-          ssh ${{ secrets.USER }}@${{ secrets.HOST }} \
-            -i ${{ steps.set-up-hpc-target.outputs.private-key-path }} \
-            /bin/bash <<EOT
+          ssh hpc <<'HPC_SSH_EOF'
             set -euo pipefail
-            if [[ ${CONTAINERISED_ENVS_DEBUG:-0} == 1 ]]; then
+            if [[ '${{ env.CONTAINERISED_ENVS_DEBUG }}' == 1 ]]; then
               set -x
             fi
-            # Set configuration environment
-            source '$REPO_PATH/$ENV_CONFIG_FILENAME'
+            # GitHub runner environment export
+            source '${{ env.GH_ENV_EXPORT_SCRIPT }}'
             # Set job name prefix
             export JOB_NAME_PREFIX=staging
-            # Set DEPLOYMENT_STAGE to STAGING
+            # Set DEPLOYMENT_STAGE
             export DEPLOYMENT_STAGE=STAGING
-            "\$INFRA_SCRIPTS_DIR/submit_pbs_job.sh" "\$INFRA_SCRIPTS_DIR/build_and_deploy_env.sh"
-          EOT
+            source "$INFRA_SCRIPTS_DIR/submit_pbs_job.sh" "$INFRA_SCRIPTS_DIR/build_and_deploy.sh"
+          HPC_SSH_EOF
       
       - name: Deploy production environment
         if: inputs.production
         id: deploy-production
         run: |
-          # Run deployment
-          ssh ${{ secrets.USER }}@${{ secrets.HOST }} \
-            -i ${{ steps.set-up-hpc-target.outputs.private-key-path }} \
-            /bin/bash <<EOT
+          ssh hpc <<'HPC_SSH_EOF'
             set -euo pipefail
-            if [[ ${CONTAINERISED_ENVS_DEBUG:-0} == 1 ]]; then
+            if [[ '${{ env.CONTAINERISED_ENVS_DEBUG }}' == 1 ]]; then
               set -x
             fi
-            # Set configuration environment
-            source '$REPO_PATH/$ENV_CONFIG_FILENAME'
+            # GitHub runner environment export
+            source '${{ env.GH_ENV_EXPORT_SCRIPT }}'
             # Set job name prefix
             export JOB_NAME_PREFIX=production
-            # Set DEPLOYMENT_STAGE to PRODUCTION
+            # Set DEPLOYMENT_STAGE
             export DEPLOYMENT_STAGE=PRODUCTION
-            "\$INFRA_SCRIPTS_DIR/submit_pbs_job.sh" "\$INFRA_SCRIPTS_DIR/build_and_deploy_env.sh"
-          EOT
+            source "$INFRA_SCRIPTS_DIR/submit_pbs_job.sh" "$INFRA_SCRIPTS_DIR/build_and_deploy.sh"
+          HPC_SSH_EOF
     
-      - name: Get hpc_target_deployment_info JSON
-        # We always run this if any deployment is triggered, even if it failed (i.e., inputs.staging=true)
-        # We try to retrieve the hpc_target_deployment_info.json file created by the deployment job.
-        # If we fail, we create the hpc_target_deployment_info.json file.
-        if: always() && !cancelled() && inputs.staging == true
-        id: get-deployment-info
+      # Get files within the TEMP_EXCHANGE_DIR_ON_HPC to GitHub Runner
+      - name: Get files from temporary exchange directory on HPC system
+        if: always() && !cancelled() && steps.set-up-hpc-target.outcome == 'success'
+        id: get-files-from-hpc
         run: |
-          if ! rsync -e "ssh -i ${{ steps.set-up-hpc-target.outputs.private-key-path }}" \
-            ${{ secrets.USER }}@${{ secrets.HOST }}:"$HPC_TARGET_DEPLOYMENT_INFO_JSON_PATH" \
-            "$HPC_TARGET_DEPLOYMENT_INFO_JSON_PATH_ON_GITHUB_RUNNER"; then
-              echo "::warning::Failed to retrieve hpc_target_deployment_info JSON file from HPC system. Creating JSON file:"
-              # set SUCCESS and DEPLOYMENT_STAGE for the create_hpc_target_deployment_info_json.sh script
-              export SUCCESS=false
-              export DEPLOYMENT_STAGE=${{ inputs.production == true && 'PRODUCTION' || 'STAGING' }}
-              bash infrastructure/scripts/create_hpc_target_deployment_info_json.sh "$HPC_TARGET_DEPLOYMENT_INFO_JSON_PATH_ON_GITHUB_RUNNER"
+          set -euo pipefail
+          if [[ ${CONTAINERISED_ENVS_DEBUG:-0} == 1 ]]; then
+            set -x
+          fi
+          # Get files from TEMP_EXCHANGE_DIR_ON_HPC to GitHub runner
+          mkdir -p "$TEMP_EXCHANGE_DIR_ON_GH"
+          rsync \
+            -avh \
+            --no-perms \
+            --no-owner \
+            --no-group \
+            hpc:"$TEMP_EXCHANGE_DIR_ON_HPC/" "$TEMP_EXCHANGE_DIR_ON_GH"
+          
+      - name: Sanity check on deployment info JSON file
+        if: always() && !cancelled() && steps.get-files-from-hpc.outcome == 'success'
+        continue-on-error: true
+        id: deployment-info-json-sanity-check
+        run: |
+          set -euo pipefail
+          if [[ ${CONTAINERISED_ENVS_DEBUG:-0} == 1 ]]; then
+            set -x
+          fi
+          if [[ ! -f "$DEPLOYMENT_INFO_JSON_ON_GH" ]]; then
+            echo "::error:: The deployment info JSON file was not produced."
+            exit 1
+          else
+            cat "$DEPLOYMENT_INFO_JSON_ON_GH"
           fi
     
       - name: Set message for summary
-        # We always run this if the get-deployment-info step succeeds.
-        if: always() && !cancelled() && steps.get-deployment-info.outcome == 'success'
+        # We always run this if the deployment-info-json-sanity-check step succeeds.
+        if: always() && !cancelled() && steps.deployment-info-json-sanity-check.outcome == 'success'
         id: set-message-summary
         uses: ./.github/actions/set_message
         with:
           message-type: summary
-          data-file: ${{ env.HPC_TARGET_DEPLOYMENT_INFO_JSON_PATH_ON_GITHUB_RUNNER }}
+          data-file: ${{ env.DEPLOYMENT_INFO_JSON_ON_GH }}
 
       - name: Set message in the step summary
         # We always run this if the set-message-summary step succeeds.
         if: always() && !cancelled() && steps.set-message-summary.outcome == 'success'
         run: cat "${{ steps.set-message-summary.outputs.message-file-path }}" >> $GITHUB_STEP_SUMMARY
 
-      - name: Save hpc_target_deployment_info JSON as an artifact
-        # We always run this if the get-deployment-info step succeeds.
-        if: always() && !cancelled() && steps.get-deployment-info.outcome == 'success'
+      - name: Save deployment info JSON as an artifact
+        # We always run this if the deployment-info-json-sanity-check step succeeds.
+        if: always() && !cancelled() && steps.deployment-info-json-sanity-check.outcome == 'success'
         uses: actions/upload-artifact@v7
         with:
-          path: ${{ env.HPC_TARGET_DEPLOYMENT_INFO_JSON_PATH_ON_GITHUB_RUNNER }}
-          name: deployment_${{ matrix.hpc-target }}_${{ inputs.environment }}_${{ inputs.version }}
+          path: ${{ env.DEPLOYMENT_INFO_JSON_ON_GH }}
+          name: deployment_info_${{ matrix.hpc-target }}_${{ inputs.environment }}_${{ inputs.version }}
     
       - name: Delete staging files
         # Delete staging files if we deploy to production, or if there are no deployments 
@@ -276,11 +295,9 @@ jobs:
             # Delete staging files
             "\$INFRA_SCRIPTS_DIR/delete_staging_files.sh" ${{ github.event.number }}
           EOT
-
-      - name: Delete repository on HPC system
+    
+      # Delete the temporary exchange directory that we created on the HPC system
+      - name: Delete temporary exchange directory on HPC system
+        id: delete-temp-dir
         if: always() && steps.set-up-hpc-target.outcome == 'success'
-        run: |
-          ssh ${{ secrets.USER }}@${{ secrets.HOST }} \
-            -i ${{ steps.set-up-hpc-target.outputs.private-key-path }} /bin/bash <<EOT
-            rm -rf '$REPO_PATH'
-          EOT
+        run: ssh hpc 'rm -rfv ${{ env.TEMP_EXCHANGE_DIR_ON_HPC }}'

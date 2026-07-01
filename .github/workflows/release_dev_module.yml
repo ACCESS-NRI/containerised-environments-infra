@@ -33,7 +33,7 @@ jobs:
   deploy:
     name: Deploy DEVELOPMENT ${{ inputs.environment }} environment to PRODUCTION
     needs: [set_version]
-    uses: ./.github/workflows/deploy_env.yml
+    uses: ./.github/workflows/deploy_module.yml
     with:
       environment: "${{ inputs.environment }}"
       version: "${{ needs.set_version.outputs.version }}"

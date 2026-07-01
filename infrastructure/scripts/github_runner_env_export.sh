@@ -2,7 +2,7 @@
 # needed for the deploy process on the HPC system.
 
 # The bash variables in this script are taken from the GitHub job environment 
-# defined within the deploy_env.yml workflow.
+# defined within the deploy_module.yml workflow.
 
 set -euo pipefail
 
@@ -44,7 +44,7 @@ export MODULE_VERSION='$MODULE_VERSION'
 export MODULE_TYPE='$MODULE_TYPE'
 export HPC_TARGET='$HPC_TARGET'
 export HPC_NAME='$HPC_NAME'
-export HPC_TARGET_DEPLOYMENT_INFO_JSON_PATH='$HPC_TARGET_DEPLOYMENT_INFO_JSON_PATH'
+export DEPLOYMENT_INFO_JSON_ON_HPC='$DEPLOYMENT_INFO_JSON_ON_HPC'
 export STARTED_AT='$STARTED_AT'
 export DEFAULTS_DIR='$defaults_dir'
 export SCRIPTS_DIR='$scripts_dir'

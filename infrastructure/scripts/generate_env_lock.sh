@@ -1,4 +1,4 @@
-# This file is sourced in the build_and_deploy_env.sh script to generate a lock file 
+# This file is sourced in the build_and_deploy.sh script to generate a lock file 
 # for the containerised environment.
 # It generate an environment lock file using `micromamba env export`, then removes the
 # 'prefix:' line and sets the environment name to $MODULE_NAME-$MODULE_VERSION.

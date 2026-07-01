@@ -9,12 +9,14 @@ description: |
     to have the CI environment ready within the HPC system.
   - Sync repository to the HPC target
 
-  This action exports the following environment variables that can be used in subsequent steps:
-  - REPO_PATH: the path to this repository synced on the HPC target
-  - HPC_TARGET_DEPLOYMENT_INFO_JSON_PATH: the path to the hpc_target_deployment_info.json file on the HPC target
-  - HPC_TARGET_DEPLOYMENT_INFO_JSON_PATH_ON_GITHUB_RUNNER: the path to the hpc_target_deployment_info.json file on the GitHub runner
-  - ENV_CONFIG_FILENAME: the name of the environment configuration script that can be sourced to have the CI environment ready within the HPC system
-    The full path of the environment configuration script on the HPC target is: $REPO_PATH/$ENV_CONFIG_FILENAME
+  This action exports the following environment variables used in subsequent steps:
+    - TEMP_EXCHANGE_DIR_ON_HPC: path to the temporary exchange directory on the HPC target
+    - TEMP_EXCHANGE_DIR_ON_GH: path to the temporary exchange directory on the GitHub runner
+    - DEPLOYMENT_INFO_JSON_ON_HPC: path to the deployment info JSON file on the HPC target
+    - DEPLOYMENT_INFO_JSON_ON_GH: path to the deployment info JSON file on the GitHub runner
+    - REPO_PATH: path to this repository clone on the HPC target
+    - GH_ENV_EXPORT_SCRIPT: path on the HPC target of the bash script sourced to export variables
+      from the GitHub runner environment
 
 inputs:
   target-name:
@@ -26,15 +28,16 @@ inputs:
   host:
     description: "Hostname for SSH access to the HPC target."
     required: true
-  host-data:
-    description: "Hostname for SSH data transfer to the HPC target's data node."
-    required: true
   ssh-key:
     description: "Private SSH key for access to the HPC target."
     required: true
   ssh-key-passphrase:
     description: "Passphrase for the private SSH key."
     required: false
+  token:
+    description: "GitHub token with read permissions to this repository."
+    required: false
+    default: true
 outputs:
   private-key-path:
     description: "Path to the private SSH key file created in this action for SSH access to the HPC target. This can be used in subsequent steps that require SSH access to the HPC target."
@@ -42,27 +45,6 @@ outputs:
 runs:
   using: composite
   steps:
-    # Check that required inputs are non-empty
-    - name: Check inputs
-      shell: bash
-      run: |
-        if [[ ${CONTAINERISED_ENVS_DEBUG:-0} == 1 ]]; then
-          set -x
-        fi
-        declare -A inputs=(
-          [target-name]="${{ inputs.target-name }}"
-          [user]="${{ inputs.user }}"
-          [host]="${{ inputs.host }}"
-          [host-data]="${{ inputs.host-data }}"
-          [ssh-key]="${{ inputs.ssh-key }}"
-        )
-        for name in "${!inputs[@]}"; do
-          if [[ -z "${inputs[$name]}" ]]; then
-            echo "::error::Input '$name' cannot be empty."
-            exit 1
-          fi
-        done
-        
     # Sanity check that all needed GitHub Environment variables and secrets are non-empty
     - name: Check GitHub Environment configuration
       shell: bash
@@ -94,65 +76,81 @@ runs:
       uses: access-nri/actions/.github/actions/setup-ssh@main
       id: ssh
       with:
-        hosts: |
-          ${{ inputs.host }}
-          ${{ inputs.host-data }}
+        hosts: ${{ inputs.host }}:hpc
+        user: ${{ inputs.user }}
         private-key: ${{ inputs.ssh-key }}
         private-key-passphrase: ${{ inputs.ssh-key-passphrase }}
 
-    # We create a temporary repository directory on the HPC system and set its path 
-    # as a GitHub environment variable that can be used in subsequent steps.
-    - name: Create repository directory
-      id: create-repo-dir
+    # We create a temporary directory on the HPC system, to exchange files between
+    # the GitHub runner and the HPC system.
+    # We also define the path to the correspective directory and other useful files
+    # on the GitHub runner so we can use them in subsequent steps both within the HPC
+    # system and the GitHub runner.
+    - name: Create temporary exchange directory on HPC system
+      id: create-exchange-dir
       shell: bash
       run: |
         if [[ ${CONTAINERISED_ENVS_DEBUG:-0} == 1 ]]; then
           set -x
         fi
-        repo_path=$(
-          ssh ${{ inputs.user }}@${{ inputs.host }} \
-          -i ${{ steps.ssh.outputs.private-key-path }} \
-          mktemp -d
+        temp_exchange_dir=$(
+          ssh hpc 'mktemp -d'
         )
-        echo "REPO_PATH=$repo_path" >> $GITHUB_ENV
+        echo "TEMP_EXCHANGE_DIR_ON_HPC=$temp_exchange_dir" >> $GITHUB_ENV
+        # Set the path to the temporary exchange directory on the GitHub runner
+        temp_exchange_dir_on_gh_runner="${{github.workspace}}/from_hpc"
+        echo "TEMP_EXCHANGE_DIR_ON_GH=$temp_exchange_dir_on_gh_runner" >> $GITHUB_ENV
+        # Set the name of the deployment info JSON file
+        deployment_info_json_filename=deployment_info_${{ job.check_run_id }}.json
+        # Set the path to the deployment_info.json file on the HPC
+        echo "DEPLOYMENT_INFO_JSON_ON_HPC=$temp_exchange_dir/$deployment_info_json_filename" >> $GITHUB_ENV
+        # Set the path to the deployment_info.json file on the GH runner
+        echo "DEPLOYMENT_INFO_JSON_ON_GH=$temp_exchange_dir_on_gh_runner/$deployment_info_json_filename" >> $GITHUB_ENV
+        # Path to the repository clone on the HPC system
+        echo "REPO_PATH=$temp_exchange_dir/repository_clone" >> $GITHUB_ENV
 
-    # We set the env variable that stores the path to the hpc_target_deployment_info.json file containing
-    # information about the deployment to pass to the GitHub runner.
-    # For simplicity, we set this path to be within the REPO_PATH directory. This way, the file will
-    # also be deleted when we delete the REPO_PATH directory.
-    # We also set the path to the hpc_target_deployment_info.json file on the GitHub runner, which
-    # we will use to retrieve the file from the HPC system and upload it as an artifact at the end of the workflow.
-    - name: Set hpc_target_deployment_info.json path env variable
+    # We create a bash script to export variables from
+    # the GitHub runner environment to the HPC system
+    - name: Set GitHub runner environment export script
       shell: bash
       run: |
-        json_name='hpc_target_deployment_info_${{ job.check_run_id }}.json'
-        echo "HPC_TARGET_DEPLOYMENT_INFO_JSON_PATH=$REPO_PATH/$json_name" >> $GITHUB_ENV
-        echo "HPC_TARGET_DEPLOYMENT_INFO_JSON_PATH_ON_GITHUB_RUNNER=${{ github.workspace }}/$json_name" >> $GITHUB_ENV
-
-    # We create the ENV_CONFIG_FILENAME bash script that exports multiple configuration 
-    # env variables when sourced. 
-    # This will allow us to source the script in any following step to have the CI environment 
-    # ready within the HPC system.
-    - name: Set configuration env script
-      shell: bash
-      run: |
-        env_config_filename='.env_config'
-        echo "ENV_CONFIG_FILENAME=$env_config_filename" >> $GITHUB_ENV
-        bash infrastructure/scripts/write_env_exports.sh > "$env_config_filename"
-
-    # Sync current directory (repository + ENV_CONFIG_FILENAME script) to the HPC system
-    - name: Sync repository to HPC system
-      id: sync-repo
-      shell: bash
-      run: |
-        set -euo pipefail
         if [[ ${CONTAINERISED_ENVS_DEBUG:-0} == 1 ]]; then
           set -x
         fi
-        rsync -e 'ssh -i ${{ steps.ssh.outputs.private-key-path }}' \
-          -avz \
-          --delete \
-          --exclude=/.git/ \
-          --exclude=/.github/ \
-          ./ \
-          "${{ inputs.user }}@${{ inputs.host-data }}:$REPO_PATH"
+        # Set GitHub runner environment export script path within the HPC system
+        gh_env_export_script_on_hpc="$TEMP_EXCHANGE_DIR_ON_HPC/gh_env_exports_on_hpc.sh"
+        gh_env_export_script_on_gh_runner=gh_env_exports_on_gh_runner.sh
+        # Generate GitHub runner environment export script
+        source infrastructure/scripts/github_runner_env_export.sh > "$gh_env_export_script_on_gh_runner"
+        echo "GH_ENV_EXPORT_SCRIPT=$gh_env_export_script_on_hpc" >> $GITHUB_ENV
+        # Copy the GitHub runner environment export script to the HPC system
+        rsync "$gh_env_export_script_on_gh_runner" hpc:"$gh_env_export_script_on_hpc"
+
+    # We clone this repository to make the repository files available within the HPC system.
+    # For simplicity, instead of actually cloning the whole repository, we just initialise
+    # an empty git repository, add the remote, fetch the specific commit and check it out.
+    # This saves time and disk space, especially for large repositories.
+    - name: Clone repository on HPC system
+      id: clone-repo
+      shell: bash
+      env:
+        GITHUB_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      run: |
+        ssh hpc << 'HPC_SSH_EOF'
+          if [[ '${{ env.CONTAINERISED_ENVS_DEBUG }}' == 1 ]]; then
+            set -x
+          fi
+          set -euo pipefail
+          repo_path='${{ env.REPO_PATH }}'
+          git config --list
+          # Initialise an empty git repository 
+          git init "$repo_path"
+          # Add remote with GH_TOKEN for authentication
+          git -C "$repo_path" \
+            remote add origin 'https://x-access-token:${{ inputs.token }}@github.com/${{ github.repository }}.git'
+          # Fetch the specific commit and check it out
+          git -C "$repo_path" \
+            fetch --depth 1 origin '${{ env.GITHUB_SHA }}'
+          git -C "$repo_path" \
+            checkout FETCH_HEAD
+        HPC_SSH_EOF

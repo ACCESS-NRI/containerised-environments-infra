@@ -1,4 +1,4 @@
-# Sourced by 'infrastructure/scripts/build_and_deploy_env.sh' to configure the
+# Sourced by 'infrastructure/scripts/build_and_deploy.sh' to configure the
 # build and deployment of the containerised environment.
 
 # Some of the variables defaults in this script can be overridden for a specific environment using the
