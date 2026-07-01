@@ -37,7 +37,7 @@ source "$INSTALL_CONFIG"
 if [[ -z "${1:-}" ]]; then
     # No arguments are provided: only delete the files associated with the current version
     echo "Deleting STAGING files associated to version '$MODULE_VERSION':"
-    delete_files_in_manifest
+    delete_files_in_manifest "$FILES_MANIFEST_PATH"
 elif [[ "${1:-}" == '--all' ]]; then
     # If --all flag is provided, delete all files in the staging directories
     # We perform an extra check to avoid runing the rm command with empty variables

@@ -32,7 +32,7 @@ cleanup_env() {
     # _exit_status vaiable is initialised within the register_exit_trap_cmd function
     if [ $_exit_status -ne 0 ]; then
         echo "Error! Build failed. Cleaning up module version '$MODULE_NAME/$MODULE_VERSION' related files..." >&2
-        delete_files_in_manifest
+        delete_files_in_manifest "$FILES_MANIFEST_PATH"
     fi
 }
 register_exit_trap_cmd cleanup_env $TRAP_PRIORITY_LAST
