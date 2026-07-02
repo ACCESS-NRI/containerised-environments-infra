@@ -57,7 +57,9 @@ update_hpc_target_deployment_info() {
     # _exit_status variable is initialised within the register_exit_trap_cmd function
     export SUCCESS=$( [ $_exit_status -eq 0 ] && echo true || echo false )
     # Update the HPC target deployment info JSON
-    source "$INFRA_SCRIPTS_DIR/create_hpc_target_deployment_info_json.sh" "$HPC_TARGET_DEPLOYMENT_INFO_JSON_PATH"
+    source "$INFRA_SCRIPTS_DIR/create_hpc_target_deployment_info_json.sh" \
+        "$HPC_TARGET_DEPLOYMENT_INFO_JSON_PATH" \
+        --key env_lock "$ENV_LOCK"
 }
 register_exit_trap_cmd update_hpc_target_deployment_info $TRAP_PRIORITY_FIRST
 

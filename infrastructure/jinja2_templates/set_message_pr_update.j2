@@ -13,7 +13,7 @@
 Triggered from commit [{{ commit_sha }}]({{ commit_url }}). For further details, check the [workflow run]({{ workflow_url }}).
 
 {% for hpc_target in hpc_targets %}
-### :desktop_computer: {{ hpc_target.name }}
+### :desktop_computer: {{ hpc_target.target }}
 
 | Module Name | Module Version | Module Type | Deployment Stage | Status |
 |---|---|---|---|---|
@@ -31,7 +31,7 @@ Triggered from commit [{{ commit_sha }}]({{ commit_url }}). For further details,
   {% for deployment in hpc_target.deployments %}
     {% if deployment.success == 'true' %}
       {% if n_successful == 1 %}
-#### {{ deployment.module_name }}/{{ deployment.module_version }} on {{ hpc_target.name }}
+#### {{ deployment.module_name }}/{{ deployment.module_version }} on {{ deployment.hpc_name }}
 
 ```
 {{ deployment.module_usage_instructions }}
@@ -39,7 +39,7 @@ Triggered from commit [{{ commit_sha }}]({{ commit_url }}). For further details,
 
       {% else %}
 <details>
-<summary><b>{{ deployment.module_name }}/{{ deployment.module_version }} on {{ hpc_target.name }}</b></summary>
+<summary><b>{{ deployment.module_name }}/{{ deployment.module_version }} on {{ deployment.hpc_name }}</b></summary>
 
 ```
 {{ deployment.module_usage_instructions }}

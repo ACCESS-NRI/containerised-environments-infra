@@ -1,0 +1,12 @@
+{% for deployment in deployments %}
+## :rocket: Deployed {{ deployment.module_name }}/{{ deployment.module_version }} on :desktop_computer: {{ deployment.hpc_name }}
+
+To use the `{{ deployment.module_name }}/{{ deployment.module_version }}` module on _{{ deployment.hpc_name }}_, run the following commands:
+
+```
+{{ deployment.module_usage_instructions }}
+```
+
+---
+_For more information, see the [deployment workflow run]({{ deployment.deployment_workflow_url }})_
+{% endfor %}

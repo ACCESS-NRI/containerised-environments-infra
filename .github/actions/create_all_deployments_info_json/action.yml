@@ -51,16 +51,15 @@ runs:
           echo "::error::No JSON files found in '$JSON_DIR'."
           exit 1
         fi
-        # Merge HPC target deployment info JSONs with the same name by concatenating their deployments arrays
+        # Merge HPC target deployment info JSONs with the same 'target' by concatenating their deployments arrays
         merged_jsons=$(
-          cat "${json_files[@]}" | \
           jq -cs '
-            group_by(.name) |
+            group_by(.target) |
             map({
-              name: .[0].name,
+              target: .[0].target,
               deployments: map(.deployments) | add
             })
-          '
+          ' -- "${json_files[@]}"
         )
         echo "merged-jsons=$merged_jsons" >> $GITHUB_OUTPUT
 

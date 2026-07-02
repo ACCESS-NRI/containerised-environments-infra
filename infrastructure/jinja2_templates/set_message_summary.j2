@@ -1,25 +1,15 @@
 {% for deployment in deployments %}
-## :rocket: Deployed _{{ deployment.module_name }}_ module on :desktop_computer: {{ name }}
+## :rocket: Deployed _{{ deployment.module_name }}_ module on :desktop_computer: {{ target }}
 
-**HPC Target:** {{ name }}
+**HPC Target:** {{ target }}
+**HPC Name:** {{ deployment.hpc_name }}
 **Module Name:** {{ deployment.module_name }}
 **Module Version:** {{ deployment.module_version }}
 **Module Type:** {{ deployment.module_type }}
 **Deployment Stage:** {{ deployment.deployment_stage }}
 
-To use the module on _{{ name }}_, run the following commands:
+To use the module on _{{ deployment.hpc_name }}_, run the following commands:
 ```
 {{ deployment.module_usage_instructions }}
 ```
-
-{% if deployment.env_lock %}
-<details>
-<summary><b>Environment lock</b></summary>
-
-```yaml
-{{ deployment.env_lock }}
-```
-
-</details>
-{% endif %}
 {% endfor %}

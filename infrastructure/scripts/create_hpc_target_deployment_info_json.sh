@@ -3,40 +3,98 @@
 # The values for the JSON file fields are taken from the following env variables:
 #
 # - HPC_TARGET
+# - HPC_NAME
 # - MODULE_NAME
 # - MODULE_VERSION
 # - MODULE_TYPE
 # - DEPLOYMENT_STAGE
 # - STARTED_AT
-# - MODULE_USAGE_INSTRUCTIONS
-# - ENV_LOCK
+# - DEPLOYMENT_WORKFLOW_RUN_ID
+# - DEPLOYMENT_WORKFLOW_URL
+# - COMMIT_SHA
 # - SUCCESS
+#
+# When SUCCESS is "true", the following env vars must also be set:
+# - MODULE_USAGE_INSTRUCTIONS
+# - FILES_MANIFEST_PATH
 #
 #
 # Usage:
-#   create_hpc_target_deployment_info_json.sh OUTPUT_JSON_FILE
+#   create_hpc_target_deployment_info_json.sh [--key KEY VALUE]... OUTPUT_JSON_FILE
 
 set -euo pipefail
 if [[ "${CONTAINERISED_ENVS_DEBUG:-0}" == "1" ]]; then
     set -x
 fi
 
-file="$1"
+usage() {
+    cat <<'EOF'
+Usage:
+  create_hpc_target_deployment_info_json.sh [--key KEY VALUE]... OUTPUT_JSON_FILE
 
-date=$(TZ='Australia/Sydney' date '+%FT%T %Z')
-"$JQ_EXE" -n \
+Description:
+  Creates an HPC target deployment JSON file from environment variables.
+  Additional deployment fields can be added by providing any number of `--key KEY VALUE` arguments.
+EOF
+}
+
+file=""
+declare -a extra_keys=()
+declare -a extra_values=()
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --key)
+            if [[ $# -lt 3 ]]; then
+                echo "Error: --key requires KEY and VALUE arguments" >&2
+                usage
+                exit 1
+            fi
+            extra_keys+=("$2")
+            extra_values+=("$3")
+            shift 3
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        -*)
+            echo "Error: unknown option '$1'" >&2
+            usage
+            exit 1
+            ;;
+        *)
+            if [[ -n "$file" ]]; then
+                echo "Error: multiple output files provided ('$file', '$1')" >&2
+                usage
+                exit 1
+            fi
+            file="$1"
+            shift
+            ;;
+    esac
+done
+
+if [[ -z "$file" ]]; then
+    echo "Error: missing OUTPUT_JSON_FILE argument" >&2
+    usage
+    exit 1
+fi
+
+deployment_json="$("$JQ_EXE" -n \
     --arg target "$HPC_TARGET" \
     --arg name "$MODULE_NAME" \
     --arg version "$MODULE_VERSION" \
     --arg type "$MODULE_TYPE" \
     --arg stage "$DEPLOYMENT_STAGE" \
     --arg started_at "$STARTED_AT" \
-    --arg completed_at "$date" \
-    --arg module_usage_instructions "${MODULE_USAGE_INSTRUCTIONS:-}" \
-    --arg env_lock "${ENV_LOCK:-}" \
     --arg success "$SUCCESS" \
+    --arg deployment_workflow_run_id "$DEPLOYMENT_WORKFLOW_RUN_ID" \
+    --arg deployment_workflow_url "$DEPLOYMENT_WORKFLOW_URL" \
+    --arg commit_sha "$COMMIT_SHA" \
+    --arg hpc_name "$HPC_NAME" \
     '{
-        "name": $target,
+        "target": $target,
         "deployments": [
             {
                 "module_name": $name,
@@ -44,10 +102,44 @@ date=$(TZ='Australia/Sydney' date '+%FT%T %Z')
                 "module_type": $type,
                 "deployment_stage": $stage,
                 "started_at": $started_at,
-                "completed_at": $completed_at,
-                "module_usage_instructions": $module_usage_instructions,
-                "env_lock": $env_lock,
-                "success": $success
+                "success": $success,
+                "deployment_workflow_run_id": $deployment_workflow_run_id,
+                "deployment_workflow_url": $deployment_workflow_url,
+                "commit_sha": $commit_sha,
+                "hpc_name": $hpc_name
             }
-        ]   
-    }' > "$file"
+        ]
+    }')"
+
+# Add keys if SUCCESS is true
+if [[ $SUCCESS == true ]]; then
+    completed_at="$(TZ='Australia/Sydney' date '+%FT%T %Z')"
+    files_manifest_content="$(<"$FILES_MANIFEST_PATH")"
+    deployment_json="$(printf '%s' "$deployment_json" | "$JQ_EXE" \
+        --arg completed_at "$completed_at" \
+        --arg module_usage_instructions "$MODULE_USAGE_INSTRUCTIONS" \
+        --arg files_manifest "$files_manifest_content" \
+        '.deployments[0].completed_at = $completed_at
+         | .deployments[0].module_usage_instructions = $module_usage_instructions
+         | .deployments[0].files_manifest = $files_manifest')"
+fi
+
+reserved_keys_regex='^(module_name|module_version|module_type|deployment_stage|started_at|completed_at|module_usage_instructions|files_manifest|success)$'
+for i in "${!extra_keys[@]}"; do
+    key="${extra_keys[$i]}"
+    value="${extra_values[$i]}"
+
+    if [[ -z "$key" ]]; then
+        echo "Error: key name cannot be empty" >&2
+        exit 1
+    fi
+
+    if [[ "$key" =~ $reserved_keys_regex ]]; then
+        echo "Error: key '$key' is a default deployment field and cannot be set with --key" >&2
+        exit 1
+    fi
+
+    deployment_json="$(printf '%s' "$deployment_json" | "$JQ_EXE" --arg k "$key" --arg v "$value" '.deployments[0][$k] = $v')"
+done
+
+printf '%s\n' "$deployment_json" > "$file"

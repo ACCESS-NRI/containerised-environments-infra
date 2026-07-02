@@ -2,12 +2,12 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "hpc_target_deployment_info.schema.json",
   "type": "object",
-  "required": ["name", "deployments"],
+  "required": ["target", "deployments"],
   "additionalProperties": false,
   "properties": {
-    "name": {
+    "target": {
       "type": "string",
-      "description": "Name of the HPC target for the deployment (e.g. Gadi, Setonix)"
+      "description": "Name of the HPC target (GitHub environment) used for the deployment (e.g., gadi, gadi_testing, etc.)"
     },
     "deployments": {
       "type": "array",
@@ -15,37 +15,94 @@
       "items": {
         "type": "object",
         "required": [
-            "module_name", 
-            "module_version", 
-            "module_type", 
-            "deployment_stage", 
-            "module_usage_instructions", 
-            "env_lock",
+            "module_name",
+            "module_version",
+            "module_type",
+            "deployment_stage",
             "started_at",
-            "completed_at",
-            "success"
+            "success",
+            "deployment_workflow_run_id",
+            "deployment_workflow_url",
+            "commit_sha",
+            "hpc_name"
         ],
-        "additionalProperties": false,
+        "additionalProperties": true,
         "properties": {
-          "module_name": { "type": "string", "minLength": 1 },
-          "module_version": { "type": "string", "minLength": 1 },
+          "module_name": { 
+            "type": "string", 
+            "minLength": 1,
+            "description": "Name of the deployed module"
+          },
+          "module_version": { 
+            "type": "string", 
+            "minLength": 1,
+            "description": "Version of the deployed module"
+          },
           "module_type": {
             "type": "string",
-            "enum": ["DEVELOPMENT", "STABLE"]
+            "enum": ["DEVELOPMENT", "STABLE"],
+            "description": "Type of the deployed module. DEVELOPMENT modules are for testing and may be unstable, while STABLE modules are production-ready."
           },
           "deployment_stage": {
             "type": "string",
-            "enum": ["STAGING", "PRODUCTION"]
+            "enum": ["STAGING", "PRODUCTION"],
+            "description": "Deployment stage of the deployed module. STAGING modules are deployed in a staging folder for testing before being deployed to PRODUCTION."
           },
-          "module_usage_instructions": { "type": "string" },
-          "env_lock": { "type": "string" },
-          "started_at": { "type": "string", "minLength": 1 },
-          "completed_at": { "type": "string" },
+          "module_usage_instructions": {
+            "type": "string",
+            "description": "Instructions for using the deployed module"
+          },
+          "files_manifest": {
+            "type": "string",
+            "description": "Manifest of files and folders included in the deployment"
+          },
+          "started_at": {
+            "type": "string", "minLength": 1,
+            "description": "Timestamp when the deployment was started"
+          },
+          "completed_at": {
+            "type": "string",
+            "description": "Timestamp when the deployment was completed"
+          },
           "success": {
             "type": "string",
-            "enum": ["true", "false", ""]
+            "enum": ["true", "false", ""],
+            "description": "Indicates whether the deployment was successful"
+          },
+          "deployment_workflow_run_id": {
+            "type": "string",
+            "description": "The ID of the workflow run that triggered the deployment"
+          },
+          "deployment_workflow_url": {
+            "type": "string",
+            "description": "The URL of the workflow run that triggered the deployment"
+          },
+          "commit_sha": {
+            "type": "string",
+            "description": "The SHA of the commit that triggered the deployment"
+          },
+          "hpc_name": {
+            "type": "string",
+            "description": "The name of the HPC system where the deployment was made (e.g., gadi, setonix, etc.)"
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "success": { "const": "true" }
+              },
+              "required": ["success"]
+            },
+            "then": {
+              "required": [
+                "module_usage_instructions",
+                "files_manifest",
+                "completed_at"
+              ]
+            }
+          }
+        ]
       }
     }
   }

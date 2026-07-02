@@ -34,6 +34,7 @@ jobs:
         include:
           - name: target1_success
             hpc-target: Target
+            hpc-name: MyTestHPC
             module-name: bubbi
             module-version: "2.0.0"
             env-type: STABLE
@@ -42,6 +43,7 @@ jobs:
             render: true
           - name: target1_fail
             hpc-target: Target
+            hpc-name: MyTestHPC
             module-name: another-env
             module-version: "dev-abcdef-1234567"
             env-type: DEVELOPMENT
@@ -50,6 +52,7 @@ jobs:
             render: false
           - name: target2_success
             hpc-target: Target2
+            hpc-name: MyTestHPC2
             module-name: cuccio
             module-version: "1.0"
             env-type: STABLE
@@ -58,6 +61,7 @@ jobs:
             render: false
           - name: target2_fail
             hpc-target: Target2
+            hpc-name: MyTestHPC2
             module-name: yoyo
             module-version: "1.0"
             env-type: STABLE
@@ -69,6 +73,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+      
+      - name: Create optional keys
+        if: matrix.success == 'true'
+        run: |
+          # File manifest
+          files_manifest_path="${{ github.workspace }}/files_manifest.txt"
+          printf "file1\nfile2" > "$files_manifest_path"
+          echo FILES_MANIFEST_PATH="$files_manifest_path" >> $GITHUB_ENV
+          # module_usage_instructions
+          echo "MODULE_USAGE_INSTRUCTIONS=module use /path/to/other/modules\nmodule load ${{matrix.module-name}}/${{matrix.module-version}}" >> $GITHUB_ENV
+          # env_lock
+          echo "ENV_LOCK=name: test-dev\nchannels:\n  - accessnri\n  - conda-forge\ndependencies:\n  - python\n  - pip" >> $GITHUB_ENV
 
       - name: Create hpc target deployment info JSON
         env:
@@ -78,10 +94,12 @@ jobs:
           MODULE_TYPE: ${{ matrix.env-type }}
           STARTED_AT: "1992-04-05T23:55:00 GMT+1"
           DEPLOYMENT_STAGE: ${{ matrix.deployment-stage }}
-          MODULE_USAGE_INSTRUCTIONS: "${{ matrix.success == 'true' && format('module use /path/to/other/modules\nmodule load {0}/{1}', matrix.module-name, matrix.module-version) }}"
-          ENV_LOCK: "${{ matrix.success == 'true' && 'name: test-dev\nchannels:\n  - accessnri\n  - conda-forge\ndependencies:\n  - python\n  - pip:\n    - git+https://github.com/access-nri/addmeta.git@master' }}"
           SUCCESS: ${{ matrix.success }}
-        run: bash "$CREATE_HPC_TARGET_DEPLOYMENT_INFO_SCRIPT" "$HPC_TARGET_DEPLOYMENT_INFO_JSON"
+          DEPLOYMENT_WORKFLOW_RUN_ID: ${{ github.run_id }}
+          DEPLOYMENT_WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          HPC_NAME: ${{ matrix.hpc-name }}
+        run: bash "$CREATE_HPC_TARGET_DEPLOYMENT_INFO_SCRIPT" "$HPC_TARGET_DEPLOYMENT_INFO_JSON" ${{ matrix.success == 'true' && '--key env_lock "$ENV_LOCK"' || '' }}
 
       - name: Validate hpc target deployment info JSON against schema
         run: |
@@ -105,6 +123,23 @@ jobs:
             echo "# Test Summary Message"
             echo ""
             cat "${{ steps.set-message-summary.outputs.message-file-path }}"
+          ) >> $GITHUB_STEP_SUMMARY
+        
+      - name: Test set_message action for GitHub release message
+        if: matrix.render
+        id: set-message-gh-release
+        uses: ./.github/actions/set_message
+        with:
+          message-type: gh-release
+          data-file: ${{ env.HPC_TARGET_DEPLOYMENT_INFO_JSON }}
+        
+      - name: Set message in the step summary
+        if: matrix.render
+        run: |
+          (
+            echo "# Test GitHub Release"
+            echo ""
+            cat "${{ steps.set-message-gh-release.outputs.message-file-path }}"
           ) >> $GITHUB_STEP_SUMMARY
 
       - name: Upload hpc target deployment info JSON as artifact
