@@ -53,14 +53,13 @@ runs:
         fi
         # Merge HPC target deployment info JSONs with the same 'target' by concatenating their deployments arrays
         merged_jsons=$(
-          cat "${json_files[@]}" | \
           jq -cs '
             group_by(.target) |
             map({
               target: .[0].target,
               deployments: map(.deployments) | add
             })
-          '
+          ' -- "${json_files[@]}"
         )
         echo "merged-jsons=$merged_jsons" >> $GITHUB_OUTPUT
 

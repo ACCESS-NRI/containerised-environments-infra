@@ -69,10 +69,15 @@ jobs:
 
       - name: Create tag
         id: create-tag
+        env:
+          MODULE_NAME_VERSION: ${{steps.get-info.outputs.module_name}}/${{steps.get-info.outputs.module_version}}
+          HPC_NAME: ${{steps.get-info.outputs.hpc_name}}
         run: |
-          tag_name='${{steps.get-info.outputs.module_name}}/${{steps.get-info.outputs.module_version}}_${{steps.get-info.outputs.hpc_name}}'
+          tag_name="${MODULE_NAME_VERSION}_${HPC_NAME}"
+          tag_message="Released $MODULE_NAME_VERSION module on $HPC_NAME. "
+          tag_message+="Tag automatically created by the ${{ github.workflow }} workflow."
           git config --list
-          git tag "$tag_name" ${{steps.get-info.outputs.commit_sha}}
+          git tag "$tag_name" ${{steps.get-info.outputs.commit_sha}} -m "$tag_message"
           git push origin "$tag_name"
           echo "tag_name=$tag_name" >> $GITHUB_OUTPUT
 
