@@ -17,6 +17,9 @@ function _build_trap_cmds() {
     local combined_cmds
     
     combined_cmds='_exit_status=$? ; '
+    combined_cmds+='echo "========================================================" ; '
+    combined_cmds+='echo "BEGINNING OF EXIT TRAPPED COMMANDS" ; '
+    combined_cmds+='echo "========================================================" ; '
 
     # Sort _trap_queue keys (priority) numerically and build the command chain in order of priority
     for priority in $(echo "${!_trap_queue[@]}" | tr ' ' '\n' | sort -n); do
