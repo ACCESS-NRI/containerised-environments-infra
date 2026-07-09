@@ -61,7 +61,8 @@ update_hpc_target_deployment_info() {
         "$DEPLOYMENT_INFO_JSON_ON_HPC" \
         --key env_lock "$ENV_LOCK"
 }
-register_exit_trap_cmd update_hpc_target_deployment_info $TRAP_PRIORITY_FIRST
+# We use 80 as the trap priority so this step runs right before any cleanup steps (that set 90 as trap priority)
+register_exit_trap_cmd update_hpc_target_deployment_info 80
 
 
 ### CREATE MANIFEST FILE
@@ -183,15 +184,15 @@ modulefile=$(
     get_overrides_or_defaults "$REPO_MODULE_FILE_PATH" \
     "No modulefile '${REPO_MODULE_FILE_PATH#$DEFAULTS_DIR/}' found in the repository's defaults or environment overrides."
 )
-# .modulerc
-modulerc=$(
-    get_overrides_or_defaults "$REPO_MODULERC_FILE_PATH" \
-    "No .modulerc file '${REPO_MODULERC_FILE_PATH#$DEFAULTS_DIR/}' found in the repository's defaults or environment overrides."
-)
 # Environment activation script
 env_activation_script=$(
     get_overrides_or_defaults "$REPO_ACTIVATION_SCRIPT_PATH" \
     "No environment activation script '${REPO_ACTIVATION_SCRIPT_PATH#$DEFAULTS_DIR/}' found in the repository's defaults or environment overrides."
+)
+# .modulerc
+modulerc=$(
+    get_overrides_or_defaults "$REPO_MODULERC_FILE_PATH" \
+    "No .modulerc file '${REPO_MODULERC_FILE_PATH#$DEFAULTS_DIR/}' found in the repository's defaults or environment overrides."
 )
 
 # Deploy module-related files and set permissions
@@ -203,10 +204,18 @@ copy_if_changed_with_replace "$modulefile" "$MODULE_FILE_PATH"
 set_perms "$MODULE_FILE_PATH"
 echo "Module file deployed to '$MODULE_FILE_PATH'"
 
-copy_if_changed_with_replace "$modulerc" "$MODULERC_FILE_PATH"
-set_perms "$MODULERC_FILE_PATH"
-echo "Module .modulerc file deployed to '$MODULERC_FILE_PATH'"
-
+# Write .modulerc via an EXIT trap so it appears only after the full build
+# completes, preventing users from loading a module that isn't ready yet.
+# (https://github.com/ACCESS-NRI/containerised-environments-infra/issues/70#issuecomment-4829634066)
+create_modulerc() {
+    # _exit_status variable is initialised within the register_exit_trap_cmd function
+    if [[ "$_exit_status" == 0 ]]; then # Only create .modulerc if the build was successful
+        copy_if_changed_with_replace "$modulerc" "$MODULERC_FILE_PATH"
+        set_perms "$MODULERC_FILE_PATH"
+        echo "Module .modulerc file deployed to '$MODULERC_FILE_PATH'"
+    fi
+}
+register_exit_trap_cmd create_modulerc $TRAP_PRIORITY_FIRST
 
 ### COPY LAUNCHER SCRIPT AND LINK BINARIES
 # Launcher script
