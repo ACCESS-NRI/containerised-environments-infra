@@ -9,6 +9,7 @@ source "$INFRA_SCRIPTS_DIR/functions.sh"
 
 # Set named constant priorities for the register_exit_trap_cmd function
 export TRAP_PRIORITY_FIRST=10 # Runs first (Used for setup commands)
+export TRAP_PRIORITY_BEFORE_LAST=80 # Runs before last (Used for production of modulefiles)
 export TRAP_PRIORITY_LAST=90 # Runs last (e.g. used for commands that delete files/folders)
 
 # Maximum number of DEVELOPMENT module versions to keep in PRODUCTION simultaneously.

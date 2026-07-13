@@ -61,8 +61,8 @@ update_hpc_target_deployment_info() {
         "$DEPLOYMENT_INFO_JSON_ON_HPC" \
         --key env_lock "$ENV_LOCK"
 }
-# We use 80 as the trap priority so this step runs right before any cleanup steps (that set 90 as trap priority)
-register_exit_trap_cmd update_hpc_target_deployment_info 80
+# We use the TRAP_PRIORITY_BEFORE_LAST trap priority so this step runs right before any cleanup steps (that use TRAP_PRIORITY_LAST)
+register_exit_trap_cmd update_hpc_target_deployment_info "$TRAP_PRIORITY_BEFORE_LAST"
 
 
 ### CREATE MANIFEST FILE
