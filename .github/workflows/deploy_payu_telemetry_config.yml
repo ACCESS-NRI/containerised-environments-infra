@@ -189,7 +189,6 @@ jobs:
           # Reset existing acls
           setfacl -b '${{env.PAYU_TELEMETRY_CONFIG_PATH}}'
           # Change group ownership
-          chgrp "$GROUP_OWNER" "$arg"
           chgrp '${{env.GROUP_OWNER}}' '${{env.PAYU_TELEMETRY_CONFIG_PATH}}'
           # Define permissions
           acls='u::rw-' # rw- for user
