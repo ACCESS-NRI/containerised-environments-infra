@@ -14,16 +14,22 @@ function _build_trap_cmds() {
     # original exit status of the script.
     # This way the '_exit_status' variable is available for all commands passed to 
     # register_exit_trap_cmd to refer to the original exit status of the script.
-    local combined_cmds
+    local combined_cmds priority trap_cmd
     
     combined_cmds='_exit_status=$? ; '
     combined_cmds+='echo "========================================================" ; '
     combined_cmds+='echo "BEGINNING OF EXIT TRAPPED COMMANDS" ; '
     combined_cmds+='echo "========================================================" ; '
 
-    # Sort _trap_queue keys (priority) numerically and build the command chain in order of priority
+    # Sort _trap_queue keys (priority) numerically and build the command chain in order of priority.
+    # If any registered EXIT command fails and the original exit status (_exit_status) was 0, promote it to 1
     for priority in $(echo "${!_trap_queue[@]}" | tr ' ' '\n' | sort -n); do
-        combined_cmds+="${_trap_queue[$priority]} ; "
+        while IFS= read -r trap_cmd; do
+            [[ -z "$trap_cmd" ]] && continue
+            combined_cmds+="if ! { $trap_cmd ; }; then "
+            combined_cmds+='if [[ "$_exit_status" -eq 0 ]]; then _exit_status=1; fi ; '
+            combined_cmds+="fi ; "
+        done <<< "${_trap_queue[$priority]}"
     done
 
     trap "$combined_cmds" EXIT
@@ -60,7 +66,7 @@ function register_exit_trap_cmd() {
     
     # Add the command to the trap queue with the specified priority
     if [[ -v _trap_queue["$priority"] ]]; then
-        _trap_queue["$priority"]+=" ; $cmd"
+        _trap_queue["$priority"]+=$'\n'"$cmd"
     else
         _trap_queue["$priority"]="$cmd"
     fi
