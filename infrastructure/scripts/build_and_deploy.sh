@@ -43,6 +43,8 @@ if [[ ! -d "$BASE_DIR" ]]; then
     set_perms "$BASE_DIR"
 fi
 mkdir -pv "$APP_VERSION_DIR"
+# Add version directory to files manifest
+add_to_files_manifest "$APP_VERSION_DIR"
 if [[ ! -d "$MODULE_DIR" ]]; then
     mkdir -p "$MODULE_DIR"
     set_perms "$MODULE_DIR"
@@ -63,19 +65,6 @@ create_hpc_target_deployment_info() {
 }
 # We use the TRAP_PRIORITY_BEFORE_LAST trap priority so this step runs right before any cleanup steps (that use TRAP_PRIORITY_LAST)
 register_exit_trap_cmd create_hpc_target_deployment_info "$TRAP_PRIORITY_BEFORE_LAST"
-
-
-### CREATE MANIFEST FILE
-# Create a manifest file listing all the files and folders related to the current module version:
-# - Modulefile
-# - Env activation file
-# - Env folder
-
-cat > "$FILES_MANIFEST_PATH" <<EOF
-$MODULE_FILE_PATH
-$ACTIVATION_SCRIPT_PATH
-$APP_VERSION_DIR
-EOF
 
 ### UPDATE CONTAINER IMAGE
 container_image=$(
@@ -206,10 +195,12 @@ create_modulerc() {
         copy_if_changed_with_replace "$env_activation_script" "$ACTIVATION_SCRIPT_PATH"
         set_perms "$ACTIVATION_SCRIPT_PATH"
         echo "Environment activation script deployed to '$ACTIVATION_SCRIPT_PATH'"
+        add_to_files_manifest "$ACTIVATION_SCRIPT_PATH"
         # modulefile
         copy_if_changed_with_replace "$modulefile" "$MODULE_FILE_PATH"
         set_perms "$MODULE_FILE_PATH"
         echo "Module file deployed to '$MODULE_FILE_PATH'"
+        add_to_files_manifest "$MODULE_FILE_PATH"
         # .modulerc
         copy_if_changed_with_replace "$modulerc" "$MODULERC_FILE_PATH"
         set_perms "$MODULERC_FILE_PATH"

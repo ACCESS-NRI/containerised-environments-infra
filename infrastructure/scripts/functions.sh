@@ -75,6 +75,21 @@ function register_exit_trap_cmd() {
     _build_trap_cmds
 }
 
+function add_to_files_manifest() {
+    # Add a file or directory to the files manifest for the current module version.
+    # If the file or directory is already listed in the manifest, it will not be added again.
+    local path
+    path="$1"
+    if [[ ! -e "$path" ]]; then
+        echo "Path '$path' not found." >&2
+        return 1
+    fi
+    touch "$FILES_MANIFEST_PATH"
+    if ! grep -Fqx -- "$path" "$FILES_MANIFEST_PATH"; then
+        echo "$path" >> "$FILES_MANIFEST_PATH"
+    fi
+}
+
 function delete_files_in_manifest() {
     # Delete all files and folders associated with a version, which are listed in the manifest $1.
     local manifest_file="$1"
