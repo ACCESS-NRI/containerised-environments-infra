@@ -71,8 +71,7 @@ function register_exit_trap_cmd() {
 
 function delete_files_in_manifest() {
     # Delete all files and folders associated with a version, which are listed in the manifest $1.
-    # If $1 is not provided, it defaults to the FILES_MANIFEST_PATH for the current module version.
-    local manifest_file="${1:-$FILES_MANIFEST_PATH}"
+    local manifest_file="$1"
     if [[ ! -f "$manifest_file" ]]; then
         echo "Error: manifest file '$manifest_file' not found." >&2
         return 1
@@ -80,17 +79,6 @@ function delete_files_in_manifest() {
     # Make sure to split the manifest by newlines and not by spaces (-d '\n')
     # Do not run if the manifest is empty (--no-run-if-empty)
     xargs --no-run-if-empty -d '\n' rm -vrf < "$manifest_file"
-}
-
-function in_array() {
-    # Assumes first arg is the string to search for and the others are an array
-    local string item
-    string="$1"
-    shift
-    for item in "$@"; do
-        [[ "$item" == "$string" ]] && return 0
-    done
-    return 1
 }
 
 function set_perms() {

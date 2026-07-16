@@ -31,13 +31,13 @@ elif [[ ${1:-} != '--all' && ! ${1:-0} =~ ^[0-9]+$ ]]; then
 fi
 
 # Set configuration env variables
-source "$INSTALL_CONFIG"
+source "$INFRA_SCRIPTS_DIR/install_config.sh"
 
 # Delete module files
 if [[ -z "${1:-}" ]]; then
     # No arguments are provided: only delete the files associated with the current version
     echo "Deleting STAGING files associated to version '$MODULE_VERSION':"
-    delete_files_in_manifest
+    delete_files_in_manifest "$FILES_MANIFEST_PATH"
 elif [[ "${1:-}" == '--all' ]]; then
     # If --all flag is provided, delete all files in the staging directories
     # We perform an extra check to avoid runing the rm command with empty variables

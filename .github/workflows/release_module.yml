@@ -17,7 +17,7 @@ on:
 
 jobs:
   deploy:
-    uses: ./.github/workflows/deploy_env.yml
+    uses: ./.github/workflows/deploy_module.yml
     with:
       environment: ${{ inputs.environment }}
       version: ${{ inputs.version }}
@@ -37,13 +37,13 @@ jobs:
         uses: actions/download-artifact@v8
         id: download-artifact
         with:
-          pattern: deployment_*
+          pattern: deployment_info_*
           path: ${{github.workspace}}/downloaded_artifact
       
       - name: Get info from deployment info JSON
         id: get-info
         run: |
-          deployment_info_json_path=$(find ${{steps.download-artifact.outputs.download-path}} -name 'deployment_*.json')
+          deployment_info_json_path=$(find ${{steps.download-artifact.outputs.download-path}} -name 'deployment_info_*.json')
           module_name=$(jq -r 'deployments[].module_name' "$deployment_info_json_path")
           module_version=$(jq -r 'deployments[].module_version' "$deployment_info_json_path")
           commit_sha=$(jq -r 'deployments[].commit_sha' "$deployment_info_json_path")

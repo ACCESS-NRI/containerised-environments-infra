@@ -17,11 +17,11 @@ env:
   TEST_ENV: ${{ vars.TEST_ENV }}
 
 jobs:
-  # In general, this workflow should always be "in sync" with the `deploy_env.yml` workflow.
+  # In general, this workflow should always be "in sync" with the `deploy_module.yml` workflow.
   # This means that for the env deletion and deployment to DEVELOPMENT PRODUCTION, this
-  # workflow should follow the same logic that is used in the `deploy_env.yml` workflow to detect
+  # workflow should follow the same logic that is used in the `deploy_module.yml` workflow to detect
   # and deploy the STAGING environments.
-  # For this reason, we run the parse_changed_files job identically to how we do in the `deploy_env.yml`
+  # For this reason, we run the parse_changed_files job identically to how we do in the `deploy_module.yml`
   # workflow, to make sure that we are detecting the same changes
   parse_changed_files:
     name: Parse changed files
@@ -110,7 +110,7 @@ jobs:
       fail-fast: false
       matrix:
         environment: ${{ fromJson(needs.get-environments.outputs.envs_to_deploy) }}
-    uses: ./.github/workflows/deploy_env.yml
+    uses: ./.github/workflows/deploy_module.yml
     with:
       environment: "${{ matrix.environment }}"
       version: "${{ needs.set_version.outputs.version }}"
@@ -127,7 +127,7 @@ jobs:
       fail-fast: false
       matrix:
         environment: ${{ fromJson(needs.get-environments.outputs.envs_to_delete) }}
-    uses: ./.github/workflows/deploy_env.yml
+    uses: ./.github/workflows/deploy_module.yml
     with:
       environment: "${{ matrix.environment }}"
       staging: false
