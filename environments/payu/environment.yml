@@ -17,4 +17,3 @@ dependencies:
   - experiment-runner
   - mnctools
   - addmeta
-  - pint
