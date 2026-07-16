@@ -52,17 +52,17 @@ mkdir -pv "$(dirname "$TEMP_ENV_DIR")"
 
 
 ### CREATE HPC TARGET DEPLOYMENT INFO JSON
-# Set a trap function to update the HPC target deployment info JSON when the script exits
-update_hpc_target_deployment_info() {
+# Set a trap function to create the HPC target deployment info JSON when the script exits
+create_hpc_target_deployment_info() {
     # _exit_status variable is initialised within the register_exit_trap_cmd function
     export SUCCESS=$( [ $_exit_status -eq 0 ] && echo true || echo false )
-    # Update the HPC target deployment info JSON
+    # Create the HPC target deployment info JSON
     source "$INFRA_SCRIPTS_DIR/create_hpc_target_deployment_info_json.sh" \
         "$DEPLOYMENT_INFO_JSON_ON_HPC" \
         --key env_lock "$ENV_LOCK"
 }
 # We use the TRAP_PRIORITY_BEFORE_LAST trap priority so this step runs right before any cleanup steps (that use TRAP_PRIORITY_LAST)
-register_exit_trap_cmd update_hpc_target_deployment_info "$TRAP_PRIORITY_BEFORE_LAST"
+register_exit_trap_cmd create_hpc_target_deployment_info "$TRAP_PRIORITY_BEFORE_LAST"
 
 
 ### CREATE MANIFEST FILE
@@ -196,20 +196,21 @@ modulerc=$(
 )
 
 # Deploy module-related files and set permissions
-copy_if_changed_with_replace "$env_activation_script" "$ACTIVATION_SCRIPT_PATH"
-set_perms "$ACTIVATION_SCRIPT_PATH"
-echo "Environment activation script deployed to '$ACTIVATION_SCRIPT_PATH'"
-
-copy_if_changed_with_replace "$modulefile" "$MODULE_FILE_PATH"
-set_perms "$MODULE_FILE_PATH"
-echo "Module file deployed to '$MODULE_FILE_PATH'"
-
-# Write .modulerc via an EXIT trap so it appears only after the full build
-# completes, preventing users from loading a module that isn't ready yet.
+# Write modulefiles via an EXIT trap so they only appear after the full build
+# completes, preventing users from loading or seeing a module that isn't ready yet.
 # (https://github.com/ACCESS-NRI/containerised-environments-infra/issues/70#issuecomment-4829634066)
 create_modulerc() {
     # _exit_status variable is initialised within the register_exit_trap_cmd function
-    if [[ "$_exit_status" == 0 ]]; then # Only create .modulerc if the build was successful
+    if [[ "$_exit_status" == 0 ]]; then
+        # env activation script
+        copy_if_changed_with_replace "$env_activation_script" "$ACTIVATION_SCRIPT_PATH"
+        set_perms "$ACTIVATION_SCRIPT_PATH"
+        echo "Environment activation script deployed to '$ACTIVATION_SCRIPT_PATH'"
+        # modulefile
+        copy_if_changed_with_replace "$modulefile" "$MODULE_FILE_PATH"
+        set_perms "$MODULE_FILE_PATH"
+        echo "Module file deployed to '$MODULE_FILE_PATH'"
+        # .modulerc
         copy_if_changed_with_replace "$modulerc" "$MODULERC_FILE_PATH"
         set_perms "$MODULERC_FILE_PATH"
         echo "Module .modulerc file deployed to '$MODULERC_FILE_PATH'"
