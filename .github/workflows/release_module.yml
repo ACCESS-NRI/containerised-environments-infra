@@ -16,6 +16,14 @@ on:
         type: string
 
 jobs:
+  log_information:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log information
+        run: |
+          echo '::notice::Workflow run from `${{ github.ref }}`.'
+          echo '::notice::Workflow run from `${{ github.ref }}`.'
+
   deploy:
     uses: ./.github/workflows/deploy_module.yml
     with:
@@ -44,10 +52,10 @@ jobs:
         id: get-info
         run: |
           deployment_info_json_path=$(find ${{steps.download-artifact.outputs.download-path}} -name 'deployment_info_*.json')
-          module_name=$(jq -r 'deployments[].module_name' "$deployment_info_json_path")
-          module_version=$(jq -r 'deployments[].module_version' "$deployment_info_json_path")
-          commit_sha=$(jq -r 'deployments[].commit_sha' "$deployment_info_json_path")
-          hpc_name=$(jq -r 'deployments[].hpc_name' "$deployment_info_json_path")
+          module_name=$(jq -r '.deployments[].module_name' "$deployment_info_json_path")
+          module_version=$(jq -r '.deployments[].module_version' "$deployment_info_json_path")
+          commit_sha=$(jq -r '.deployments[].commit_sha' "$deployment_info_json_path")
+          hpc_name=$(jq -r '.deployments[].hpc_name' "$deployment_info_json_path")
           echo "module_name=$module_name" >> $GITHUB_OUTPUT
           echo "module_version=$module_version" >> $GITHUB_OUTPUT
           echo "commit_sha=$commit_sha" >> $GITHUB_OUTPUT
