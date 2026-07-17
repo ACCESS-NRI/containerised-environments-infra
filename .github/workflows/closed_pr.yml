@@ -67,7 +67,7 @@ jobs:
           )
           # Add them together
           envs_to_delete=$(
-            jq -n --argjson a "$dev_envs" --argjson b "$stable_envs" '$a + $b | unique'
+            jq -nc --argjson a "$dev_envs" --argjson b "$stable_envs" '$a + $b | unique'
           )
           # If there are changes that don't involve the `environments` folder,
           # add a vars.TEST_ENV environment to the environments to delete
