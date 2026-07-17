@@ -14,18 +14,25 @@ function _build_trap_cmds() {
     # original exit status of the script.
     # This way the '_exit_status' variable is available for all commands passed to 
     # register_exit_trap_cmd to refer to the original exit status of the script.
-    local combined_cmds
+    local combined_cmds priority trap_cmd
     
     combined_cmds='_exit_status=$? ; '
     combined_cmds+='echo "========================================================" ; '
     combined_cmds+='echo "BEGINNING OF EXIT TRAPPED COMMANDS" ; '
     combined_cmds+='echo "========================================================" ; '
 
-    # Sort _trap_queue keys (priority) numerically and build the command chain in order of priority
+    # Sort _trap_queue keys (priority) numerically and build the command chain in order of priority.
+    # If any registered EXIT command fails and the original exit status (_exit_status) was 0, promote it to 1
     for priority in $(echo "${!_trap_queue[@]}" | tr ' ' '\n' | sort -n); do
-        combined_cmds+="${_trap_queue[$priority]} ; "
+        while IFS= read -r trap_cmd; do
+            [[ -z "$trap_cmd" ]] && continue
+            combined_cmds+="if ! { $trap_cmd ; }; then "
+            combined_cmds+='if [[ "$_exit_status" -eq 0 ]]; then _exit_status=1; fi ; '
+            combined_cmds+="fi ; "
+        done <<< "${_trap_queue[$priority]}"
     done
-
+    # Exit with the $_exit_status
+    combined_cmds+='exit "$_exit_status"'
     trap "$combined_cmds" EXIT
 }
 
@@ -46,6 +53,10 @@ function register_exit_trap_cmd() {
     # `$_exit_status` instead of `$?`, as `$?` will reflect the exit status of the
     # previously executed trap command rather than the original script exit status.
     #
+    # If any trap command fails and $_exit_status is 0, $_exit_status will be 
+    # updated to 1.
+    # The exit code of the whole EXIT registered commands will be `$_exit_status`.
+    #
     # Examples:
     #   register_exit_trap_cmd "my_fun"
     #   register_exit_trap_cmd "remove_fun" 90
@@ -60,13 +71,28 @@ function register_exit_trap_cmd() {
     
     # Add the command to the trap queue with the specified priority
     if [[ -v _trap_queue["$priority"] ]]; then
-        _trap_queue["$priority"]+=" ; $cmd"
+        _trap_queue["$priority"]+=$'\n'"$cmd"
     else
         _trap_queue["$priority"]="$cmd"
     fi
 
     # Build the trap command based on the registered commands and their priorities
     _build_trap_cmds
+}
+
+function add_to_files_manifest() {
+    # Add a file or directory to the files manifest for the current module version.
+    # If the file or directory is already listed in the manifest, it will not be added again.
+    local path
+    path="$1"
+    if [[ ! -e "$path" ]]; then
+        echo "Path '$path' not found." >&2
+        return 1
+    fi
+    touch "$FILES_MANIFEST_PATH"
+    if ! grep -Fqx -- "$path" "$FILES_MANIFEST_PATH"; then
+        echo "$path" >> "$FILES_MANIFEST_PATH"
+    fi
 }
 
 function delete_files_in_manifest() {
