@@ -30,6 +30,8 @@ function _build_trap_cmds() {
             combined_cmds+='if [[ "$_exit_status" -eq 0 ]]; then _exit_status=1; fi ; '
             combined_cmds+="fi ; "
         done <<< "${_trap_queue[$priority]}"
+        # Exit with the $_exit_status
+        combined_cmds+='exit "$_exit_status"'
     done
 
     trap "$combined_cmds" EXIT
@@ -51,6 +53,10 @@ function register_exit_trap_cmd() {
     # Note: to refer to the exit status of the script within trap commands, use
     # `$_exit_status` instead of `$?`, as `$?` will reflect the exit status of the
     # previously executed trap command rather than the original script exit status.
+    #
+    # If any trap command fails and $_exit_status is 0, $_exit_status will be 
+    # updated to 1.
+    # The exit code of the whole EXIT registered commands will be `$_exit_status`.
     #
     # Examples:
     #   register_exit_trap_cmd "my_fun"
