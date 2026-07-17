@@ -30,10 +30,9 @@ function _build_trap_cmds() {
             combined_cmds+='if [[ "$_exit_status" -eq 0 ]]; then _exit_status=1; fi ; '
             combined_cmds+="fi ; "
         done <<< "${_trap_queue[$priority]}"
-        # Exit with the $_exit_status
-        combined_cmds+='exit "$_exit_status"'
     done
-
+    # Exit with the $_exit_status
+    combined_cmds+='exit "$_exit_status"'
     trap "$combined_cmds" EXIT
 }
 
