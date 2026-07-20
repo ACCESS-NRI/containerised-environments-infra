@@ -4,7 +4,7 @@ channels:
   - conda-forge
 dependencies:
   - python==3.10
-  - accessnri::payu==1.3.3
+  - accessnri::payu==1.3.4
   - f90nml
   - nco
   - pytest
