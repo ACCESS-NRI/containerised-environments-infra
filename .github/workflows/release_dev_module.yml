@@ -15,6 +15,14 @@ on:
         type: string
 
 jobs:
+  log_information:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log information
+        run: |
+          echo '::notice::Workflow run from `${{ github.ref_name }}`.'
+          echo '::notice::Module to be released: `${{ inputs.environment }}/dev`.'
+
   set_version:
     name: Set version
     runs-on: ubuntu-latest
