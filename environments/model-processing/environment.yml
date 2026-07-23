@@ -9,6 +9,6 @@ dependencies:
   - esmf
   - mule
   - scitools-iris
-  - um2nc
-  - umfile_utils
+  - um2nc==2.1.0
+  - umfile_utils==1.1.0
   - xarray

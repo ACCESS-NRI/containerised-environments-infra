@@ -7,6 +7,7 @@ dependencies:
   - python
   - ants
   - esmf
+  - mo_pack
   - mule
   - scitools-iris
   - xarray
