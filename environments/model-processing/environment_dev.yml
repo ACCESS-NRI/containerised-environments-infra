@@ -11,4 +11,5 @@ dependencies:
   - scitools-iris
   - xarray
   - pip:
+    - git+https://github.com/access-nri/um2nc-standalone.git@main
     - git+https://github.com/access-nri/umfile_utils.git@main
