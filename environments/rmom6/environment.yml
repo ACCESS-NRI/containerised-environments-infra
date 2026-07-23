@@ -6,4 +6,5 @@ dependencies:
   - esmpy
   - jupyter
   - matplotlib
-  - regional-mom6==1.0.1
+  - regional-mom6
+  - cartopy
