@@ -5,10 +5,6 @@ channels:
   - nodefaults
 dependencies:
   - python
-  - ants
-  - esmf
-  - mule
-  - scitools-iris>=3.11.1
-  - um2nc==2.1.0
+  - um2nc==2.1.1
   - umfile_utils==1.1.0
   - xarray

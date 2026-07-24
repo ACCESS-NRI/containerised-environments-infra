@@ -5,11 +5,6 @@ channels:
   - nodefaults
 dependencies:
   - python
-  - ants
-  - esmf
-  - mo_pack
-  - mule
-  - scitools-iris>=3.11.1
   - xarray
   - pip:
     - git+https://github.com/access-nri/um2nc-standalone.git@main
