@@ -3,4 +3,4 @@ channels:
   - accessnri
   - conda-forge
 dependencies:
-  - copernicusmarine
+  - copernicusmarine==2.4.1
