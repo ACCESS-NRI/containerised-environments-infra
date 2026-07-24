@@ -1,0 +1,9 @@
+name: ants
+channels:
+  - accessnri
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python
+  - ants==v3.2.0
+  - esmf
