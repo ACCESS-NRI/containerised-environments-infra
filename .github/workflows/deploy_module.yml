@@ -293,6 +293,8 @@ jobs:
             source '${{ env.GH_ENV_EXPORT_SCRIPT }}'
             # Set DEPLOYMENT_STAGE
             export DEPLOYMENT_STAGE=STAGING
+            # Set IS_DEPLOYMENT
+            export IS_DEPLOYMENT=false
             # Delete staging files
             "$INFRA_SCRIPTS_DIR/delete_staging_files.sh" ${{ github.event.number }}
           HPC_SSH_EOF

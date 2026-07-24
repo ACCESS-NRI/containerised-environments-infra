@@ -75,7 +75,7 @@ export FILES_MANIFEST_NAME=files_manifest.txt
 export FILES_MANIFEST_PATH="$APP_VERSION_DIR/$FILES_MANIFEST_NAME"
 
 ### Logic that runs only if a deployment is taking place
-if [[ "$DEPLOYMENT_STAGE" == PRODUCTION ]] || [[ "$DEPLOYMENT_STAGE" == STAGING ]]; then
+if [[ "${IS_DEPLOYMENT:-true}" == true ]]; then
     # Create base directory if not present
     mkdir -pv "$BASE_DIR"
 
