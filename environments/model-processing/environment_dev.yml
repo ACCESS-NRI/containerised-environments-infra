@@ -5,6 +5,7 @@ channels:
   - nodefaults
 dependencies:
   - python
+  - mo_pack
   - xarray
   - pip:
     - git+https://github.com/access-nri/um2nc-standalone.git@main
