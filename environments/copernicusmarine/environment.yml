@@ -1,0 +1,7 @@
+name: copernicusmarine
+channels:
+  - accessnri
+  - conda-forge
+  - nodefaults
+dependencies:
+  - copernicusmarine==2.4.1
