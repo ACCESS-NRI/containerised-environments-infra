@@ -20,55 +20,57 @@ sed -i -e '/^prefix:/d' \
     -e "s|^name:.*|name: $MODULE_NAME-$MODULE_VERSION|" \
     "$temp_env_lock_file"
 
-# Use awk (with 2 input files) to get pip-installed git packages from pip freeze output,
-# and then replace those in the env lock file
-# and output the final lock file to $ENV_LOCK_FILE_PATH
-# If pip is not installed in the environment, `pip freeze` fails (e.g. "No module
-# named pip"); `|| true` makes the process substitution yield empty output in that
-# case, so no pip-installed git packages get substituted.
-awk '
-# Execute the first set of commands only for the first file (pip freeze output).
-# NR --> Total number of records processed (i.e. lines)
-# FNR --> Number of records processed (i.e. lines) in the current file
-# NR==FNR is true only while reading the first file
-NR==FNR {
-    if ($0 ~ /^[^ @]+ @ git\+/) { # Line matches the pattern for git-installed packages
-        # Get package name and git specification
-        idx = index($0, " @ ") # Split on " @ " to separate package name and git spec
-        pkg = tolower(substr($0, 1, idx-1)) # Get package name (lowercase)
-        gitspec = substr($0, idx+3)  # Get git specification
-        specs[pkg] = gitspec # Store in specs array to use in the next set of commands
+if "$TEMP_ENV_DIR/bin/python3" -m pip --version &> /dev/null; then
+    # If pip is installed, use awk (with 2 input files) to get pip-installed git packages
+    # from pip freeze output, and then replace those in the env lock file
+    # and output the final lock file to $ENV_LOCK_FILE_PATH.
+    awk '
+    # Execute the first set of commands only for the first file (pip freeze output).
+    # NR --> Total number of records processed (i.e. lines)
+    # FNR --> Number of records processed (i.e. lines) in the current file
+    # NR==FNR is true only while reading the first file
+    NR==FNR {
+        if ($0 ~ /^[^ @]+ @ git\+/) { # Line matches the pattern for git-installed packages
+            # Get package name and git specification
+            idx = index($0, " @ ") # Split on " @ " to separate package name and git spec
+            pkg = tolower(substr($0, 1, idx-1)) # Get package name (lowercase)
+            gitspec = substr($0, idx+3)  # Get git specification
+            specs[pkg] = gitspec # Store in specs array to use in the next set of commands
+        }
+        next  # Go to next line
     }
-    next  # Go to next line
-}
 
-# Detect the start of the pip section in the lock file
-/^  - pip:/ { # pip freeze output would never match this
-    in_pip = 1 # set a variable to indicate we are in the pip section
-    print # print the start of pip section
-    next # Go to next line
-}
-
-# Process pip package lines
-in_pip && /^    - / {
-    line = $0
-    sub(/^    - /, "", line)   # strip the leading "    - " to get "pkg==version"
-    sub(/==.*/, "", line)      # strip "==version" to get just the package name
-    pkg = tolower(line)
-    if (pkg in specs) { # If the package was installed from git
-        # Replace with the git spec from pip freeze
-        print "    - " specs[pkg]
-    } else { # Otherwise, keep the original line
-        print $0
+    # Detect the start of the pip section in the lock file
+    /^  - pip:/ { # pip freeze output would never match this
+        in_pip = 1 # set a variable to indicate we are in the pip section
+        print # print the start of pip section
+        next # Go to next line
     }
-    next # Go to next line
-}
 
-# Detect the end of the pip section
-in_pip && !/^    - / {
-    in_pip = 0
-}
+    # Process pip package lines
+    in_pip && /^    - / {
+        line = $0
+        sub(/^    - /, "", line)   # strip the leading "    - " to get "pkg==version"
+        sub(/==.*/, "", line)      # strip "==version" to get just the package name
+        pkg = tolower(line)
+        if (pkg in specs) { # If the package was installed from git
+            # Replace with the git spec from pip freeze
+            print "    - " specs[pkg]
+        } else { # Otherwise, keep the original line
+            print $0
+        }
+        next # Go to next line
+    }
 
-# Print all other lines unchanged
-{ print }
-' <("$TEMP_ENV_DIR/bin/python3" -m pip freeze || true) "$temp_env_lock_file" > "$ENV_LOCK_FILE_PATH"
+    # Detect the end of the pip section
+    in_pip && !/^    - / {
+        in_pip = 0
+    }
+
+    # Print all other lines unchanged
+    { print }
+    ' <("$TEMP_ENV_DIR/bin/python3" -m pip freeze) "$temp_env_lock_file" > "$ENV_LOCK_FILE_PATH"
+else
+    # If pip is not installed, keep the lock file as $temp_env_lock_file.
+    mv "$temp_env_lock_file" "$ENV_LOCK_FILE_PATH"
+fi
