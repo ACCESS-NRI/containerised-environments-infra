@@ -80,6 +80,18 @@ function register_exit_trap_cmd() {
     _build_trap_cmds
 }
 
+function is_in_array() {
+    # Search an item in an array.
+    # Assumes first arg as the item to search for and the others are the array
+    local string item
+    string="$1"
+    shift
+    for item in "$@"; do
+        [[ "$item" == "$string" ]] && return 0
+    done
+    return 1
+}
+
 function add_to_files_manifest() {
     # Add a file or directory to the files manifest for the current module version.
     # If the file or directory is already listed in the manifest, it will not be added again.

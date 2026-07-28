@@ -226,7 +226,7 @@ echo "Launcher script deployed to '$LAUNCHER_SCRIPT_PATH'"
 # with exception of those in HOST_EXECUTABLES (that will not be linked)
 for binfile in "$TEMP_ENV_DIR"/bin/*; do
     binfile_name=$(basename "$binfile")
-    if ! in_array "$binfile_name" "${host_executables[@]}"; then
+    if ! is_in_array "$binfile_name" "${host_executables[@]}"; then
         ln -s "$LAUNCHER_SCRIPT_PATH" "$ENV_BIN_DIR/$binfile_name"
     fi
 done
