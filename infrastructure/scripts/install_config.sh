@@ -221,7 +221,7 @@ if [[ "${IS_DEPLOYMENT:-true}" == true ]]; then
     echo "Using micromamba executable: $MAMBA_EXE"
     
     # Set ENV_PROMPT_MODIFIER
-    export ENV_PROMPT_MODIFIER="${ENV_PROMPT_MODIFIER:-"($MODULE_NAME-$MODULE_VERSION) "}"
+    export ENV_PROMPT_MODIFIER="${ENV_PROMPT_MODIFIER:-"($MODULE_NAME/$MODULE_VERSION)"}"
 
     ### jq initialisation
     # If the jq executable is not found or not executable, the latest version is installed in the TEMP_WORKING_DIR directory
