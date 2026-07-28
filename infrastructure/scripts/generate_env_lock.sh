@@ -23,6 +23,9 @@ sed -i -e '/^prefix:/d' \
 # Use awk (with 2 input files) to get pip-installed git packages from pip freeze output,
 # and then replace those in the env lock file
 # and output the final lock file to $ENV_LOCK_FILE_PATH
+# If pip is not installed in the environment, `pip freeze` fails (e.g. "No module
+# named pip"); `|| true` makes the process substitution yield empty output in that
+# case, so no pip-installed git packages get substituted.
 awk '
 # Execute the first set of commands only for the first file (pip freeze output).
 # NR --> Total number of records processed (i.e. lines)
@@ -68,4 +71,4 @@ in_pip && !/^    - / {
 
 # Print all other lines unchanged
 { print }
-' <("$TEMP_ENV_DIR/bin/python3" -m pip freeze) "$temp_env_lock_file" > "$ENV_LOCK_FILE_PATH"
+' <("$TEMP_ENV_DIR/bin/python3" -m pip freeze || true) "$temp_env_lock_file" > "$ENV_LOCK_FILE_PATH"
