@@ -8,3 +8,4 @@ dependencies:
   - um2nc==2.1.1
   - umfile_utils==1.1.0
   - xarray
+  - splitnc
