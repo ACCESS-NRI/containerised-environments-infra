@@ -1,8 +1,10 @@
-name: test
+name: model-processing
 channels:
   - accessnri
   - conda-forge
   - nodefaults
 dependencies:
   - python
-  - addmeta
+  - um2nc==2.1.1
+  - umfile_utils==1.1.0
+  - xarray

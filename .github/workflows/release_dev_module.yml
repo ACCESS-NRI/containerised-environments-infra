@@ -1,7 +1,7 @@
 name: Release DEVELOPMENT environment to PRODUCTION
 description: |
   This workflow deploys DEVELOPMENT environments to PRODUCTION.
-  It should be triggered manually (workflow_dispatch), by specify the environment 
+  It should be triggered manually (workflow_dispatch) by specifying the environment 
   to deploy as an input.
   For example, this can be triggered from the dev package's repository on each new update,
   to deploy a DEVELOPMENT environment with the latest package updates for testing.
