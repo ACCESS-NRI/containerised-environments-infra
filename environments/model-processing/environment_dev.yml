@@ -12,3 +12,4 @@ dependencies:
     - git+https://github.com/access-nri/um2nc-standalone.git@main
     - git+https://github.com/access-nri/umfile_utils.git@main
     - git+https://github.com/ACCESS-NRI/splitnc.git@main
+    - git+https://github.com/ACCESS-NRI/addmeta.git@main

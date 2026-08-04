@@ -9,3 +9,4 @@ dependencies:
   - umfile_utils==1.1.0
   - xarray
   - splitnc
+  - addmeta
