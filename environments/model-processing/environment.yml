@@ -8,5 +8,5 @@ dependencies:
   - um2nc==2.1.1
   - umfile_utils==1.1.0
   - xarray
-  - splitnc
-  - addmeta
+  - splitnc==0.2.0
+  - addmeta==0.5
