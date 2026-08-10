@@ -10,6 +10,6 @@ dependencies:
     - git+https://github.com/COSIMA/regional-mom6.git@7bdf2e4c28100d69e3ff3f49bb4e9206a7dd075a
   # The following are not dependencies of regional-mom6 but required for the rOM3 workflow and demos. 
   - jupyter
-  - matplotlib
+  - matplotlib>=3.11
   - cartopy
   - cf_xarray
