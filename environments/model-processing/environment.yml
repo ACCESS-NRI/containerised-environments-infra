@@ -5,7 +5,7 @@ channels:
   - nodefaults
 dependencies:
   - python
-  - um2nc==2.1.1
+  - um2nc==2.2.0
   - umfile_utils==1.1.0
   - xarray
   - splitnc==0.2.0
