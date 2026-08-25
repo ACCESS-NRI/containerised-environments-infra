@@ -1,0 +1,17 @@
+name: rmom6-dev
+channels:
+  - accessnri
+  - conda-forge
+  - nodefaults
+dependencies:
+  - esmpy
+  - pip:
+    # Current dev branch of rmom6
+    - git+https://github.com/COSIMA/regional-mom6.git@7bdf2e4c28100d69e3ff3f49bb4e9206a7dd075a
+    # Fork of mom6_forge
+    - git+https://github.com/COSIMA/mom6_forge.git
+  # The following are not dependencies of regional-mom6 but required for the rOM3 workflow and demos. 
+  - jupyter
+  - matplotlib>=3.11
+  - cartopy
+  - cf_xarray

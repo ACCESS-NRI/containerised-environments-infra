@@ -1,0 +1,13 @@
+name: rmom6
+channels:
+  - accessnri
+  - conda-forge
+  - nodefaults
+dependencies:
+  - esmpy
+  - regional-mom6==1.0.1
+  # The following are not dependencies of regional-mom6 but required for the rOM3 workflow and demos. 
+  - jupyter
+  - matplotlib
+  - cartopy
+  - cf_xarray
