@@ -7,3 +7,4 @@ dependencies:
   - python
   - ants==v3.2.0
   - esmf
+  - xarray
