@@ -4,6 +4,7 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
+  - python=3.11
   - cdo
   - pip:
     - git+https://github.com/access-nri/era5-grib-parallel.git@main
