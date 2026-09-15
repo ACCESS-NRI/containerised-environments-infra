@@ -6,8 +6,8 @@ channels:
 dependencies:
   - esmpy
   - pip:
-    # Main branch of regional-mom6, currently set to the first tag made ready for containerised env (1.0.2)
-    - git+https://github.com/COSIMA/regional-mom6.git@v1.0.2
+    # Main branch of regional-mom6
+    - git+https://github.com/COSIMA/regional-mom6.git@v1.0.3
     # Fork of mom6_forge
     - git+https://github.com/COSIMA/mom6_forge.git@1.0
   # The following are not dependencies of regional-mom6 but required for the rOM3 workflow and demos. 
