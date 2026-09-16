@@ -1,4 +1,4 @@
-name: palsr
+name: r-meorg
 channels:
   - me-org
   - conda-forge
