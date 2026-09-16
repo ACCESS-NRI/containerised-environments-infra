@@ -1,0 +1,7 @@
+name: r-meorg
+channels:
+  - me-org
+  - conda-forge
+  - nodefaults
+dependencies:
+  - me-org::r-meorg==1.0.5
