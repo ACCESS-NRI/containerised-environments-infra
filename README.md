@@ -52,9 +52,9 @@ The live modules accessed by end-users.
    - what it is needed for
 2. In a new branch (branched from `main`) create a subdirectory within [environments](environments/), named after the new environment. The environment name must be hyphenated (no spaces or underscores).
 In this folder add:
-  - An environment specification `environment.yml` file.
-  - An optional dev specification `environment_dev.yml` file.
-  - Other optional [override files](https://deepwiki.com/ACCESS-NRI/containerised-environments-infra/1.1-getting-started-and-repository-layout#overrides-pattern).
+    - An environment specification `environment.yml` file.
+    - An optional dev specification `environment_dev.yml` file.
+    - Other optional [override files](https://deepwiki.com/ACCESS-NRI/containerised-environments-infra/1.1-getting-started-and-repository-layout#overrides-pattern).
 
 ## Environments versioning
 
