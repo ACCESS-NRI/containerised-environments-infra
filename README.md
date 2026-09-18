@@ -7,8 +7,16 @@ module load ...
 ```
 
 ## Overview
-
 For an AI-generated detailed overview of this repository --> [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ACCESS-NRI/containerised-environments-infra)
+  - [Module deployment scenarios: STABLE vs. DEVELOPMENT and STAGING vs. PRODUCTION](#module-deployments-stable-vs-development-and-staging-vs-production)
+    - [Module Types](#module-types)
+    - [Deployment Stages](#deployment-stages)
+    - [Module Deployment Scenarios Matrix](#module-deployment-scenarios-matrix)
+  - [How to add a new environment](#how-to-add-a-new-environment)
+  - [Environments versioning](#environments-versioning)
+  - [How to release a new STABLE environment](#how-to-release-a-new-stable-environment)
+  - [How to release a new DEVELOPMENT environment](#how-to-release-a-new-development-environment)
+  - [Release/deployment approval and progression](#releasedeployment-approval-and-progression)
 
 ## Module deployments: STABLE vs. DEVELOPMENT and STAGING vs. PRODUCTION
 
