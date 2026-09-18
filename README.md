@@ -1,19 +1,52 @@
-# Containerised Environments
+# Containerised Environments Modules
 
-This repository provides a framework for deploying conda-like environments on High-Performance Computing (HPC) systems using Apptainer (used to be known as Singularity) containers and SquashFS overlays. This approach significantly reduces inode consumption and improves performance by encapsulating thousands of environment files into a single compressed image, while maintaining the flexibility of a standard conda environment installation.
+This repository provides a framework for deploying modules that load conda-like environments on High-Performance Computing (HPC) systems using Apptainer (used to be known as Singularity) containers and SquashFS overlays. This approach significantly reduces inode consumption and improves performance by encapsulating thousands of environment files into a single compressed image, while keeping usability as simple as running a TCL modules construct:
+```
+module use ...
+module load ...
+```
 
 ## Overview
 
 For an AI-generated detailed overview of this repository --> [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ACCESS-NRI/containerised-environments-infra)
 
+## Module deployments: STABLE vs. DEVELOPMENT and STAGING vs. PRODUCTION
+
+There are 4 possible module deployment scenarios, determined by the _module type_ and _deployment stage_: 
+
+### Module Types
+**STABLE**<br>
+Used for non-development modules. The environment is typically defined by fixed versions in `environment.yml` and installed from stable channels like Anaconda.org.
+
+**DEVELOPMENT**<br>
+Used for testing development packages, often installed via pip + git from specific repository refs as defined in `environment_dev.yml`.
+
+### Deployment Stages
+**STAGING**<br>
+A testing area used for automated infrastructure validation and testing during CI (e.g., Pull Requests).
+
+**PRODUCTION**<br>
+The live modules accessed by end-users.
+
+### Module Deployment Scenarios Matrix
+| | STABLE | DEVELOPMENT |
+|---|---|---|
+| **PRODUCTION** | Stable modules for day-to-day user workflows | Dev modules for user functional testing |
+| **STAGING** | Stable modules deployed for CI testing | Dev modules deployed for CI testing |
+
+
 ## How to add a new environment
 
-1. Open an issue related to the environment, listing the specifics of the environment (e.g. required packages, target HPC systems) and what it is needed for.
-2. In a new branch (branched from `main`) create a new folder under [environments](environments/), named after the environment. The environment name must be hyphenated (no underscores).
-In this folder there should be:
+1. Open an issue listing the following information about the new environment:
+   - environment name
+   - required packages
+   - target HPC systems
+   - what it is needed for
+2. In a new branch (branched from `main`) create a subdirectory within [environments](environments/), named after the new environment. The environment name must be hyphenated (no spaces or underscores).
+In this folder add:
   - An environment specification `environment.yml` file.
   - An optional dev specification `environment_dev.yml` file.
-  - Other optional override files (see the wiki for more info on overrides).
+  - Other optional [override files](https://deepwiki.com/ACCESS-NRI/containerised-environments-infra/1.1-getting-started-and-repository-layout#overrides-pattern).
 
 ## Environments versioning
 
@@ -22,15 +55,20 @@ The version of an environment can have any structure (e.g., `1.2.0`, `myver`, `2
 When using this `..._X` versioning scheme, an override for the `.modulerc` file should also be added to the environment, so that the latest `..._X` version is automatically detected and loaded.
 This can be copied from the [`payu` environment `.modulerc` override](https://github.com/ACCESS-NRI/containerised-environments-infra/blob/main/environments/payu/overrides/modules/.modulerc).
 
-## How to release a new environment version
+## How to release a new STABLE environment
 
-To release a new environment version, trigger the [`release_module.yml`](https://github.com/ACCESS-NRI/containerised-environments-infra/actions/workflows/release_module.yml) GitHub Actions workflow:
+To release a new STABLE environment version for PRODUCTION, trigger the [`release_module.yml`](https://github.com/ACCESS-NRI/containerised-environments-infra/actions/workflows/release_module.yml) GitHub Actions workflow:
 
-1. Go to the **Actions** tab in the repository
-2. Select the **release_module** workflow
-3. Click **Run workflow** and provide:
+Click **Run workflow** and provide:
    - The environment name (as it appears in the [`environments/`](environments/) folder)
    - The version to release (following the [versioning scheme](#environments-versioning) described above)
+
+## How to release a new DEVELOPMENT environment
+
+To release a new DEVELOPMENT environment version for PRODUCTION, trigger the [`release_dev_module.yml`](https://github.com/ACCESS-NRI/containerised-environments-infra/actions/workflows/release_dev_module.yml) GitHub Actions workflow:
+
+Click **Run workflow** and provide:
+   - The environment name (as it appears in the [`environments/`](environments/) folder)
 
 ## Release/deployment approval and progression
 
