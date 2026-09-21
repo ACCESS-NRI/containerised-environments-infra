@@ -35,7 +35,7 @@ Used for testing development packages, often installed via pip + git from specif
 
 ### Deployment Stages
 **STAGING**<br>
-A testing area used for automated infrastructure validation and testing during CI (e.g., Pull Requests).
+A testing area used for automated infrastructure validation and experimental code testing (e.g., to test a specific package experimental code that is still in a feature branch before it gets merged to its main branch).
 
 **PRODUCTION**<br>
 The live modules accessed by end-users.
@@ -44,7 +44,7 @@ The live modules accessed by end-users.
 | | STABLE | DEVELOPMENT |
 |---|---|---|
 | **PRODUCTION** | Stable modules for day-to-day user workflows | Dev modules for user functional testing |
-| **STAGING** | Stable modules deployed for CI testing | Dev modules deployed for CI testing |
+| **STAGING** | Stable modules deployed for CI testing | Dev modules deployed for CI and experimental code testing |
 
 
 ## How to add a new environment
