@@ -7,7 +7,6 @@ module load ...
 ```
 
 ## Overview
-For an AI-generated detailed overview of this repository --> [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ACCESS-NRI/containerised-environments-infra)
 
 - [Module deployments: STABLE vs. DEVELOPMENT and STAGING vs. PRODUCTION](#module-deployments-stable-vs-development-and-staging-vs-production)
   - [Module Types](#module-types)
@@ -19,8 +18,13 @@ For an AI-generated detailed overview of this repository --> [![Ask DeepWiki](ht
   - [DEVELOPMENT modules for PRODUCTION](#development-modules-for-production)
 - [How to release a new STABLE module](#how-to-release-a-new-stable-module)
 - [How to release a new DEVELOPMENT module](#how-to-release-a-new-development-module)
+- [Pull Requests](#pull-requests)
+  - [Opened or updated Pull Requests](opened-or-updated-pull-requests)
+  - [Closed Pull Requests](closed-pull-requests)
 - [Release/deployment approval and progression](#releasedeployment-approval-and-progression)
 
+
+For an AI-generated detailed overview of this repository --> [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ACCESS-NRI/containerised-environments-infra)
 
 ## Module deployments: STABLE vs. DEVELOPMENT and STAGING vs. PRODUCTION
 
@@ -93,11 +97,33 @@ Click **Run workflow** and provide:
 
 <img src=".github/.readme_assets/release_dev_env.png" width="600">
 
+## Pull Requests
+
+### Opened or updated Pull Requests
+When a Pull Requests is opened or updated, STAGING modules are deployed, which can be useful for CI, infrastructure and experimental code testing. 
+
+- If the changes involve the [environments](environments/) folder, for each changed environment:
+
+   - Changed `environment_dev.yml`: DEVELOPMENT module is deployed
+   - Changed `environment.yml`: STABLE module is deployed
+   - Both files changed: both STABLE and DEVELOPMENT modules are deployed
+   - Neither file changed (e.g., changed override file): STABLE module is deployed
+
+- If the changes do not involve the [environments](environments/) folder (e.g., changes to the [defaults](defaults/) folder), a STABLE `test` module is deployed to STAGING. The `test` environment is used for infrastructure testing within CI.
+
+> [!IMPORTANT]
+> All STAGING modules versions deployed within the same PR are retained and can be loaded using their version specifier.
+
+### Closed Pull Requests
+When a Pull Request is closed, all STAGING environments deployed within the PR are deleted. If the Pull Request is merged and the changes included `environment_dev.yml` files, DEVELOPMENT modules are deployed to PRODUCTION for each changed environment.
+
+
 ## Release/deployment approval and progression
 
-Once a release/deployment workflow is triggered:
+Once a release/deployment workflow is triggered (including for Pull Requests):
 
 1. **Approval step** — A repository admin will review and approve the deployment
 2. **Build and deployment** — The workflow will build the containerised environment and deploy it to the HPC systems
 3. **Monitor progress** — You can track the workflow run in the [**Actions**](https://github.com/ACCESS-NRI/containerised-environments-infra/actions) tab to see real-time build status
-4. **GitHub release** — For stable module releases, a new tag and GitHub release is automatically created with instructions on how to load and use the module on each HPC system
+4. **Pull Requests** - For Pull Requests, a message with information on the deployment progression will appear. Once the deployment ends, the message is updated with module usage instructions.
+5. **GitHub release** — For stable module releases, a new tag and GitHub release is automatically created with instructions on how to load and use the module on each HPC system
