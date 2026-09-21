@@ -8,15 +8,19 @@ module load ...
 
 ## Overview
 For an AI-generated detailed overview of this repository --> [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ACCESS-NRI/containerised-environments-infra)
-  - [Module deployment scenarios: STABLE vs. DEVELOPMENT and STAGING vs. PRODUCTION](#module-deployments-stable-vs-development-and-staging-vs-production)
-    - [Module Types](#module-types)
-    - [Deployment Stages](#deployment-stages)
-    - [Module Deployment Scenarios Matrix](#module-deployment-scenarios-matrix)
-  - [How to add a new environment](#how-to-add-a-new-environment)
-  - [Environments versioning](#environments-versioning)
-  - [How to release a new STABLE environment](#how-to-release-a-new-stable-environment)
-  - [How to release a new DEVELOPMENT environment](#how-to-release-a-new-development-environment)
-  - [Release/deployment approval and progression](#releasedeployment-approval-and-progression)
+
+- [Module deployments: STABLE vs. DEVELOPMENT and STAGING vs. PRODUCTION](#module-deployments-stable-vs-development-and-staging-vs-production)
+  - [Module Types](#module-types)
+  - [Deployment Stages](#deployment-stages)
+  - [Module Deployment Scenarios Matrix](#module-deployment-scenarios-matrix)
+- [How to add a new environment](#how-to-add-a-new-environment)
+- [Modules versioning](#modules-versioning)
+  - [STABLE modules for PRODUCTION](#stable-modules-for-production)
+  - [DEVELOPMENT modules for PRODUCTION](#development-modules-for-production)
+- [How to release a new STABLE module](#how-to-release-a-new-stable-module)
+- [How to release a new DEVELOPMENT module](#how-to-release-a-new-development-module)
+- [Release/deployment approval and progression](#releasedeployment-approval-and-progression)
+
 
 ## Module deployments: STABLE vs. DEVELOPMENT and STAGING vs. PRODUCTION
 
@@ -56,16 +60,23 @@ In this folder add:
     - An optional dev specification `environment_dev.yml` file.
     - Other optional [override files](https://deepwiki.com/ACCESS-NRI/containerised-environments-infra/1.1-getting-started-and-repository-layout#overrides-pattern).
 
-## Environments versioning
+## Modules versioning
 
-The version of an environment can have any structure (e.g., `1.2.0`, `myver`, `2026.01.0_main`). However, if the version follows the versioning of an internal "core" package (for example, the [payu](environments/payu/) environment, which is versioned following the version of the internal `payu` package), an additional `..._X` portion should be appended to the "core" version, with `X` starting from `0` and increasing (e.g., `1.2.0_0`, `myversion_2`). This allows multiple versions of the environment with the same "core" package version to be released.
+### STABLE modules for PRODUCTION
+The version of a STABLE module for PRODUCTION can have any structure (e.g., `1.2.0`, `myver`, `2026.01.0_main`). However, if the version follows the versioning of an internal "core" package (for example, the [payu](environments/payu/) module, which is versioned following the version of the internal `payu` package), an additional `..._X` portion should be appended to the "core" version, with `X` starting from `0` and increasing (e.g., `1.2.0_0`, `myversion_2`). This allows multiple versions of the module with the same "core" package version to be released.
 
-When using this `..._X` versioning scheme, an override for the `.modulerc` file should also be added to the environment, so that the latest `..._X` version is automatically detected and loaded.
+When using this `..._X` versioning scheme, an override for the `.modulerc` file should also be added to the environment folder, so that the latest `..._X` version is automatically detected and loaded.
 This can be copied from the [`payu` environment `.modulerc` override](https://github.com/ACCESS-NRI/containerised-environments-infra/blob/main/environments/payu/overrides/modules/.modulerc).
 
-## How to release a new STABLE environment
+### DEVELOPMENT modules for PRODUCTION
+The version of DEVELOPMENT modules is automatically set and includes the date and commit hash of the release (e.g., `dev-20260916T090458-9423ec0`). In addition to loading these modules with their full version specifier (e.g., `module load myenv/dev-20260916T090458-9423ec0`), the latest DEVELOPMENT module can be loaded using the `dev` specifier: `module load myenv/dev`.
+The `dev` pointer always points to the latest DEVELOPMENT module, allowing you to continuously update and test new potential release candidates. Existing DEVELOPMENT modules remain available even when a new one is released and the `dev` pointer is updated.
+> [!IMPORTANT]
+> To limit disk space usage on HPC systems, a maximum of **3** DEVELOPMENT modules versions can co-exist at any time. When a new DEVELOPMENT module is released and there are already 3 versions, the oldest one is automatically deleted.
 
-To release a new STABLE environment version for PRODUCTION, trigger the [`release_module.yml`](https://github.com/ACCESS-NRI/containerised-environments-infra/actions/workflows/release_module.yml) GitHub Actions workflow:
+## How to release a new STABLE module
+
+To release a new STABLE module version for PRODUCTION, trigger the [`release_module.yml`](https://github.com/ACCESS-NRI/containerised-environments-infra/actions/workflows/release_module.yml) GitHub Actions workflow:
 
 Click **Run workflow** and provide:
    - The environment name (as it appears in the [`environments/`](environments/) folder)
@@ -73,9 +84,9 @@ Click **Run workflow** and provide:
 
 <img src=".github/.readme_assets/release_stable_env.png" width="600">
 
-## How to release a new DEVELOPMENT environment
+## How to release a new DEVELOPMENT module
 
-To release a new DEVELOPMENT environment version for PRODUCTION, trigger the [`release_dev_module.yml`](https://github.com/ACCESS-NRI/containerised-environments-infra/actions/workflows/release_dev_module.yml) GitHub Actions workflow:
+To release a new DEVELOPMENT module version for PRODUCTION, trigger the [`release_dev_module.yml`](https://github.com/ACCESS-NRI/containerised-environments-infra/actions/workflows/release_dev_module.yml) GitHub Actions workflow:
 
 Click **Run workflow** and provide:
    - The environment name (as it appears in the [`environments/`](environments/) folder)
@@ -89,4 +100,4 @@ Once a release/deployment workflow is triggered:
 1. **Approval step** — A repository admin will review and approve the deployment
 2. **Build and deployment** — The workflow will build the containerised environment and deploy it to the HPC systems
 3. **Monitor progress** — You can track the workflow run in the [**Actions**](https://github.com/ACCESS-NRI/containerised-environments-infra/actions) tab to see real-time build status
-4. **GitHub release** — For stable environments releases, a new tag and GitHub release is automatically created with instructions on how to load and use the environment on each HPC system
+4. **GitHub release** — For stable module releases, a new tag and GitHub release is automatically created with instructions on how to load and use the module on each HPC system
