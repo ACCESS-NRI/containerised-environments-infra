@@ -71,12 +71,16 @@ Click **Run workflow** and provide:
    - The environment name (as it appears in the [`environments/`](environments/) folder)
    - The version to release (following the [versioning scheme](#environments-versioning) described above)
 
+<img src=".github/.readme_assets/release_stable_env.png" width="600">
+
 ## How to release a new DEVELOPMENT environment
 
 To release a new DEVELOPMENT environment version for PRODUCTION, trigger the [`release_dev_module.yml`](https://github.com/ACCESS-NRI/containerised-environments-infra/actions/workflows/release_dev_module.yml) GitHub Actions workflow:
 
 Click **Run workflow** and provide:
    - The environment name (as it appears in the [`environments/`](environments/) folder)
+
+<img src=".github/.readme_assets/release_dev_env.png" width="600">
 
 ## Release/deployment approval and progression
 
