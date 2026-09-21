@@ -1,5 +1,129 @@
-# Containerised Environments
+# Containerised Environments Modules
 
-This repository provides a framework for deploying conda environments on High-Performance Computing (HPC) systems using Apptainer (used to be known as Singularity) containers and SquashFS overlays. This approach significantly reduces inode consumption and improves performance by encapsulating thousands of environment files into a single compressed image, while maintaining the flexibility of a standard Conda installation.
+This repository provides a framework for deploying modules that load conda-like environments on High-Performance Computing (HPC) systems using Apptainer (used to be known as Singularity) containers and SquashFS overlays. This approach significantly reduces inode consumption and improves performance by encapsulating thousands of environment files into a single compressed image, while keeping usability as simple as running a TCL modules construct:
+```
+module use ...
+module load ...
+```
 
-For an AI-generated overview of this repository --> [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ACCESS-NRI/containerised-environments-infra)
+## Overview
+
+- [Module deployments: STABLE vs. DEVELOPMENT and STAGING vs. PRODUCTION](#module-deployments-stable-vs-development-and-staging-vs-production)
+  - [Module Types](#module-types)
+  - [Deployment Stages](#deployment-stages)
+  - [Module Deployment Scenarios Matrix](#module-deployment-scenarios-matrix)
+- [How to add a new environment](#how-to-add-a-new-environment)
+- [Modules versioning](#modules-versioning)
+  - [STABLE modules for PRODUCTION](#stable-modules-for-production)
+  - [DEVELOPMENT modules for PRODUCTION](#development-modules-for-production)
+- [How to release a new STABLE module](#how-to-release-a-new-stable-module)
+- [How to release a new DEVELOPMENT module](#how-to-release-a-new-development-module)
+- [Pull Requests](#pull-requests)
+  - [Opened or updated Pull Requests](opened-or-updated-pull-requests)
+  - [Closed Pull Requests](closed-pull-requests)
+- [Release/deployment approval and progression](#releasedeployment-approval-and-progression)
+
+
+For an AI-generated detailed overview of this repository --> [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ACCESS-NRI/containerised-environments-infra)
+
+## Module deployments: STABLE vs. DEVELOPMENT and STAGING vs. PRODUCTION
+
+There are 4 possible module deployment scenarios, determined by the _module type_ and _deployment stage_: 
+
+### Module Types
+**STABLE**<br>
+Used for non-development modules. The environment is typically defined by fixed versions in `environment.yml` and installed from stable channels like Anaconda.org.
+
+**DEVELOPMENT**<br>
+Used for testing development packages, often installed via pip + git from specific repository refs as defined in `environment_dev.yml`.
+
+### Deployment Stages
+**STAGING**<br>
+A testing area used for automated infrastructure validation and experimental code testing (e.g., to test a specific package experimental code that is still in a feature branch before it gets merged to its main branch).
+
+**PRODUCTION**<br>
+The live modules accessed by end-users.
+
+### Module Deployment Scenarios Matrix
+| | STABLE | DEVELOPMENT |
+|---|---|---|
+| **PRODUCTION** | Stable modules for day-to-day user workflows | Dev modules for user functional testing |
+| **STAGING** | Stable modules deployed for CI testing | Dev modules deployed for CI and experimental code testing |
+
+
+## How to add a new environment
+
+1. Open an issue listing the following information about the new environment:
+   - environment name
+   - required packages
+   - target HPC systems
+   - what it is needed for
+2. In a new branch (branched from `main`) create a subdirectory within [environments](environments/), named after the new environment. The environment name must be hyphenated (no spaces or underscores).
+In this folder add:
+    - An environment specification `environment.yml` file.
+    - An optional dev specification `environment_dev.yml` file.
+    - Other optional [override files](https://deepwiki.com/ACCESS-NRI/containerised-environments-infra/1.1-getting-started-and-repository-layout#overrides-pattern).
+
+## Modules versioning
+
+### STABLE modules for PRODUCTION
+The version of a STABLE module for PRODUCTION can have any structure (e.g., `1.2.0`, `myver`, `2026.01.0_main`). However, if the version follows the versioning of an internal "core" package (for example, the [payu](environments/payu/) module, which is versioned following the version of the internal `payu` package), an additional `..._X` portion should be appended to the "core" version, with `X` starting from `0` and increasing (e.g., `1.2.0_0`, `myversion_2`). This allows multiple versions of the module with the same "core" package version to be released.
+
+When using this `..._X` versioning scheme, an override for the `.modulerc` file should also be added to the environment folder, so that the latest `..._X` version is automatically detected and loaded.
+This can be copied from the [`payu` environment `.modulerc` override](https://github.com/ACCESS-NRI/containerised-environments-infra/blob/main/environments/payu/overrides/modules/.modulerc).
+
+### DEVELOPMENT modules for PRODUCTION
+The version of DEVELOPMENT modules is automatically set and includes the date and commit hash of the release (e.g., `dev-20260916T090458-9423ec0`). In addition to loading these modules with their full version specifier (e.g., `module load myenv/dev-20260916T090458-9423ec0`), the latest DEVELOPMENT module can be loaded using the `dev` specifier: `module load myenv/dev`.
+The `dev` pointer always points to the latest DEVELOPMENT module, allowing you to continuously update and test new potential release candidates. Existing DEVELOPMENT modules remain available even when a new one is released and the `dev` pointer is updated.
+> [!IMPORTANT]
+> To limit disk space usage on HPC systems, a maximum of **3** DEVELOPMENT modules versions can co-exist at any time. When a new DEVELOPMENT module is released and there are already 3 versions, the oldest one is automatically deleted.
+
+## How to release a new STABLE module
+
+To release a new STABLE module version for PRODUCTION, trigger the [`release_module.yml`](https://github.com/ACCESS-NRI/containerised-environments-infra/actions/workflows/release_module.yml) GitHub Actions workflow:
+
+Click **Run workflow** and provide:
+   - The environment name (as it appears in the [`environments/`](environments/) folder)
+   - The version to release (following the [versioning scheme](#environments-versioning) described above)
+
+<img src=".github/.readme_assets/release_stable_env.png" width="600">
+
+## How to release a new DEVELOPMENT module
+
+To release a new DEVELOPMENT module version for PRODUCTION, trigger the [`release_dev_module.yml`](https://github.com/ACCESS-NRI/containerised-environments-infra/actions/workflows/release_dev_module.yml) GitHub Actions workflow:
+
+Click **Run workflow** and provide:
+   - The environment name (as it appears in the [`environments/`](environments/) folder)
+
+<img src=".github/.readme_assets/release_dev_env.png" width="600">
+
+## Pull Requests
+
+### Opened or updated Pull Requests
+When a Pull Requests is opened or updated, STAGING modules are deployed, which can be useful for CI, infrastructure and experimental code testing. 
+
+- If the changes involve the [environments](environments/) folder, for each changed environment:
+
+   - Changed `environment_dev.yml`: DEVELOPMENT module is deployed
+   - Changed `environment.yml`: STABLE module is deployed
+   - Both files changed: both STABLE and DEVELOPMENT modules are deployed
+   - Neither file changed (e.g., changed override file): STABLE module is deployed
+
+- If the changes do not involve the [environments](environments/) folder (e.g., changes to the [defaults](defaults/) folder), a STABLE `test` module is deployed to STAGING. The `test` environment is used for infrastructure testing within CI.
+
+> [!IMPORTANT]
+> All STAGING modules versions deployed within the same PR are retained and can be loaded using their version specifier.
+
+### Closed Pull Requests
+When a Pull Request is closed, all STAGING environments deployed within the PR are deleted. If the Pull Request is merged and the changes included `environment_dev.yml` files, DEVELOPMENT modules are deployed to PRODUCTION for each changed environment.
+
+
+## Release/deployment approval and progression
+
+Once a release/deployment workflow is triggered (including for Pull Requests):
+
+1. **Approval step** — A repository admin will review and approve the deployment
+2. **Build and deployment** — The workflow will build the containerised environment and deploy it to the HPC systems
+3. **Monitor progress** — You can track the workflow run in the [**Actions**](https://github.com/ACCESS-NRI/containerised-environments-infra/actions) tab to see real-time build status
+4. **Pull Requests** - For Pull Requests, a message with information on the deployment progression will appear. Once the deployment ends, the message is updated with module usage instructions.
+5. **GitHub release** — For stable module releases, a new tag and GitHub release is automatically created with instructions on how to load and use the module on each HPC system
