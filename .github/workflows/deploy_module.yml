@@ -164,9 +164,9 @@ jobs:
         uses: actions/checkout@v6
       
       - name: Set debug mode
+        # Set the debug logs when the debug mode is set for the runners
         run: |
-          # echo "CONTAINERISED_ENVS_DEBUG=${{ runner.debug }}" >> $GITHUB_ENV
-          echo "CONTAINERISED_ENVS_DEBUG=1" >> $GITHUB_ENV
+          echo "CONTAINERISED_ENVS_DEBUG=${{ runner.debug }}" >> $GITHUB_ENV
       
       # This action exports the following environment variables used in subsequent steps:
       # - TEMP_EXCHANGE_DIR_ON_HPC: path to the temporary exchange directory on the HPC target
