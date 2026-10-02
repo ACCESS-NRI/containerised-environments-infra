@@ -1,0 +1,8 @@
+name: era5grib-parallel
+channels:
+  - accessnri
+  - conda-forge
+  - nodefaults
+dependencies:
+  - cdo
+  - era5grib-parallel=1.0
