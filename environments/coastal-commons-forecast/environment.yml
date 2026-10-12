@@ -4,7 +4,7 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
-  - python=3.12
+  - python=3.12.1
   - argopy=1.4.0
   - cartopy
   - cfgrib
