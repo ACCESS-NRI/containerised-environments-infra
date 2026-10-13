@@ -1,4 +1,4 @@
-name: coastal-commons-forecast
+name: cc-forecast
 channels:
   - accessnri
   - conda-forge
