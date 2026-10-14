@@ -12,7 +12,7 @@ dependencies:
   - copernicusmarine==2.4.1
   - dask
   - ecmwf-opendata
-  - erddapy==2.2.1
+  - erddapy==3.3.1
   - gsw
   - hydra-core
   - h5netcdf
