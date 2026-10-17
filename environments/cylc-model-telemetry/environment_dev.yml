@@ -1,0 +1,9 @@
+name: cylc-model-telemetry-dev
+channels:
+  - accessnri
+  - conda-forge
+  - nodefaults
+dependencies:
+  - pip:
+    # TODO: This should be set to main before merging
+    - git+https://github.com/ACCESS-NRI/cylc-model-telemetry.git@add-telemetry-client

@@ -1,0 +1,55 @@
+#%Module1.0
+
+# The double underscore variables within this file are replaced by the 'replace_dunder_variables'
+# function within the build.sh or deploy.sh scripts
+
+if {"__MODULE_TYPE__" == "DEVELOPMENT"} {
+    module-version __MODULE_NAME__/__MODULE_VERSION__ dev
+} else {
+    module-version __MODULE_NAME__/__MODULE_VERSION__ default
+
+    # Set aliases for `<no_num_version>_NUM` version formats.
+    # For modulefiles versioned as "<no_num_version>_NUM" (NUM starting from 0 and increasing)
+    # <no_num_version> can be any string (e.g. "1.3.0", "1.4", "2024.01.01"). 
+    # Rather than hardcoding a version, this block dynamically scans
+    # the modulefiles present alongside this .modulerc so that, without ever needing to edit this
+    # file when a new version is released:
+    #   - "module load __MODULE_NAME__/<no_num_version>" loads the highest NUM available for
+    #     that <no_num_version>.
+    #     For example, if the __MODULE_NAME__ module versions "1.3.0_0", "1.3.0_1" and "1.3.0_2" exist,
+    #     running `module load __MODULE_NAME__/1.3.0` resolves to loading version "1.3.0_2".
+    #   - "module load __MODULE_NAME__/<no_num_version>_NUM" keeps working as-is, since it
+    #     loads the real modulefile directly.
+
+    # Get this file's path
+    if {[info exists ModulesCurrentModulefile]} {
+        set modroot [file dirname $ModulesCurrentModulefile]
+    } else {
+        set modroot [file dirname [info script]]
+    }
+
+    # Set regex pattern for version format (`<no_num_version>_NUM`)
+    set version_pattern {^(.*)?_([0-9]+)$}
+    # Set dictionary to store modulefiles with same `<no_num_version>` but different NUM (e.g. `1.2.3_0`, `1.2.3_1` and `1.2.3_2`)
+    set all_versions [dict create]
+
+    # Loop through all modulefiles
+    foreach modfile [glob -nocomplain -tails -directory $modroot -- *] {
+        # If the modulefile name doesn't match the `<no_num_version>_NUM` format, it is skipped
+        if {![regexp $version_pattern $modfile -> no_num_version num]} {
+            continue
+        }
+
+        # Track the highest NUM seen so far for this `no_num_version`. 
+        # Update `all_versions` only if this is the first time we've seen `no_num_version`, or if the current
+        # modulefile's NUM exceeds the highest NUM recorded for it so far.
+        if {![dict exists $all_versions $no_num_version] || $num > [dict get $all_versions $no_num_version]} {
+            dict set all_versions $no_num_version $num
+        }
+    }
+
+    # Set version alias for each no_num_version in the all_versions dictionary
+    dict for {no_num_version num} $all_versions {
+        module-version __MODULE_NAME__/${no_num_version}_${num} $no_num_version
+    }
+}
