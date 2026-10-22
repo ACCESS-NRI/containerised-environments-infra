@@ -1,0 +1,33 @@
+name: cc-forecast
+channels:
+  - accessnri
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python==3.12.1
+  - argopy==1.5.0
+  - cartopy
+  - cfgrib
+  - cmocean
+  - copernicusmarine==2.4.1
+  - dask
+  - ecmwf-opendata
+  - erddapy==3.3.1
+  - gsw
+  - hydra-core
+  - h5netcdf
+  - ipdb
+  - ipython
+  - jinja2
+  - matplotlib
+  - natsort
+  - netCDF4==1.7.4
+  - numpy==2.5.3
+  - pandas
+  - pyyaml
+  - s3fs
+  - scipy
+  - setuptools
+  - xarray
+  - xroms
+  - zarr
