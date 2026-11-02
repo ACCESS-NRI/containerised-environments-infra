@@ -7,6 +7,17 @@ To use the `{{ deployment.module_name }}/{{ deployment.module_version }}` module
 {{ deployment.module_usage_instructions }}
 ```
 
+{% if deployment.env_lock %}
+<details>
+<summary><b>Environment Lock</b></summary>
+
+```
+{{ deployment.env_lock }}
+```
+{% endif %}
+
+</details>
+
 ---
 _For more information, see the [deployment workflow run]({{ deployment.deployment_workflow_url }})_
 {% endfor %}
