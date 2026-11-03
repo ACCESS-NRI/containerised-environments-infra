@@ -1,0 +1,24 @@
+name: cc-cookbook
+channels:
+  - accessnri
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python==3.12.1
+  - ipykernel
+  - jupyterlab
+  - nbconvert
+  - ipython
+  - git-filter-repo
+  - cartopy
+  - cmocean
+  - dask
+  - gsw
+  - matplotlib
+  - netcdf4
+  - numpy
+  - scipy
+  - shapely
+  - siphon
+  - xarray
+  - xroms==0.6.2
