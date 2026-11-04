@@ -1,0 +1,7 @@
+name: reporting-tools
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - zulip 
+  - requests
