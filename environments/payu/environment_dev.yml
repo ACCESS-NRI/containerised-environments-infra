@@ -4,7 +4,7 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
-  - python>3.10,<3.11
+  - python>3.10,<3.11 # python3.10.0 is not compatible with pytest/9.2.0
   - f90nml
   - nco
   - pytest
