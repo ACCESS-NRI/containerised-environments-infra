@@ -1,4 +1,4 @@
-name: payu
+name: cylc-model-telemetry
 channels:
   - accessnri
   - conda-forge
