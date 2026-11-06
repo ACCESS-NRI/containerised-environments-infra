@@ -1,0 +1,7 @@
+name: cylc-model-telemetry
+channels:
+  - accessnri
+  - conda-forge
+  - nodefaults
+dependencies:
+  - cylc-model-telemetry
