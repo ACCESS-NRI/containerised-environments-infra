@@ -1,0 +1,8 @@
+name: cylc-model-telemetry-dev
+channels:
+  - accessnri
+  - conda-forge
+  - nodefaults
+dependencies:
+  - pip:
+    - git+https://github.com/ACCESS-NRI/cylc-model-telemetry.git@main
