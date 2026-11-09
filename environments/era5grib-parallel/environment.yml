@@ -5,4 +5,4 @@ channels:
   - nodefaults
 dependencies:
   - cdo
-  - era5grib-parallel=1.0
+  - era5grib-parallel==1.0
