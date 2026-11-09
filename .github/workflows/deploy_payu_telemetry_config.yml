@@ -170,7 +170,7 @@ jobs:
     - name: Deploy telemetry config
       run: |
         # Create payu telemetry config parent directory
-        ssh hpc 'mkdir -p $(dirname ${{env.PAYU_TELEMETRY_CONFIG_PATH}})'
+        ssh hpc "mkdir -p $(dirname "$PAYU_TELEMETRY_CONFIG_PATH")"
         # Deploy telemetry config to HPC target
         rsync \
           -avh \

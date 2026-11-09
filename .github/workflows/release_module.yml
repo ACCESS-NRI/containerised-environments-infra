@@ -18,11 +18,14 @@ on:
 jobs:
   log_information:
     runs-on: ubuntu-latest
+    env:
+      ENVIRONMENT: ${{ inputs.environment }}
+      VERSION: ${{ inputs.version }}
     steps:
       - name: Log information
         run: |
-          echo '::notice::Workflow run from `${{ github.ref_name }}`.'
-          echo '::notice::Module to be released: `${{ inputs.environment }}/${{ inputs.version }}`.'
+          echo '::notice::Workflow run from branch: ${{ github.ref_name }}'
+          echo "::notice::Module to be released: $ENVIRONMENT/$VERSION"
 
   deploy:
     uses: ./.github/workflows/deploy_module.yml

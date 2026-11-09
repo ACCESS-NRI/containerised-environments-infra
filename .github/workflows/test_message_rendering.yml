@@ -200,12 +200,12 @@ jobs:
       - name: Create directory with JSON files
         run: |
           ls ${{ steps.download-artifacts.outputs.download-path }}
-          mkdir -p "${{ env.ARTIFACTS_FOLDER }}"
+          mkdir -p "$ARTIFACTS_FOLDER"
           i=0
           while IFS= read -r name; do
           if [ -n "$name" ]; then
               src="${{ steps.download-artifacts.outputs.download-path }}/${name}.json"
-              dest="${{ env.ARTIFACTS_FOLDER }}/${name}_${i}.json"
+              dest="$ARTIFACTS_FOLDER/${name}_${i}.json"
               echo "Copying $src -> $dest"
               cp -r "$src" "$dest"
               i=$((i+1))

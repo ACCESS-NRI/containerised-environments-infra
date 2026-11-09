@@ -48,6 +48,8 @@ runs:
     # Sanity check that all needed GitHub Environment variables and secrets are non-empty
     - name: Check GitHub Environment configuration
       shell: bash
+      env:
+        TARGET_NAME: ${{ inputs.target-name }}
       run: |
         if [[ ${CONTAINERISED_ENVS_DEBUG:-0} == 1 ]]; then
           set -x
@@ -63,7 +65,7 @@ runs:
         )
         for var in "${vars[@]}"; do
           if [[ -z "${!var:-}" ]]; then
-            msg="Variable '${var}' is unset or empty in the '${{ inputs.target-name }}' GitHub Environment. "
+            msg="Variable '$var' is unset or empty in the '$TARGET_NAME' GitHub Environment. "
             msg+="Set this variable before re-running this workflow. "
             msg+="For further information, see the README section 'GitHub Environments Setup'."
             echo "::error::$msg"
@@ -135,6 +137,7 @@ runs:
       shell: bash
       env:
         GITHUB_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        TOKEN: ${{ inputs.token }}
       run: |
         ssh hpc << 'HPC_SSH_EOF'
           if [[ '${{ env.CONTAINERISED_ENVS_DEBUG }}' == 1 ]]; then
@@ -147,7 +150,7 @@ runs:
           git init "$repo_path"
           # Add remote with GH_TOKEN for authentication
           git -C "$repo_path" \
-            remote add origin 'https://x-access-token:${{ inputs.token }}@github.com/${{ github.repository }}.git'
+            remote add origin 'https://x-access-token:${{ env.TOKEN }}@github.com/${{ github.repository }}.git'
           # Fetch the specific commit and check it out
           git -C "$repo_path" \
             fetch --depth 1 origin '${{ env.GITHUB_SHA }}'
