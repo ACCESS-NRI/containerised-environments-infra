@@ -43,20 +43,24 @@ jobs:
   sanity_checks:
     name: Sanity checks
     runs-on: ubuntu-latest
+    env:
+      STAGING: ${{ inputs.staging }}
+      PRODUCTION: ${{ inputs.production }}
+      VERSION: ${{ inputs.version }}
     steps:
       # Check that if staging or production is true, then version must be provided
-      - name: Check version input
+      - name: Check version input  
         run: |
-          if [[ '${{ inputs.staging }}' == true || \
-             '${{ inputs.production }}' == true ]] && \
-             [[ '${{ inputs.version }}' == dummy_version ]]; then
-            echo "::error::'version' input must be provided when at least one of 'staging', 'test', or 'production' is true."
+          if [[ "$STAGING" == true || \
+             "$PRODUCTION" == true ]] && \
+             [[ "$VERSION" == dummy_version ]]; then
+            echo "::error::'version' input must be provided when at least one of 'staging', or 'production' is true."
             exit 1
           fi
       # Check that if production is true, then staging must be true
       - name: Check staging input
         run: |
-          if [[ '${{ inputs.production }}' == true && '${{ inputs.staging }}' == false ]]; then
+          if [[ "$PRODUCTION" == true && "$STAGING" == false ]]; then
             echo "::error::'staging' input must be true when 'production' is true."
             exit 1
           fi
@@ -99,9 +103,11 @@ jobs:
       
       - name: Get HPC targets
         id: get-targets
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
         run: |
           # First check for a file in the overrides folder
-          hpc_targets_file="environments/${{ inputs.environment }}/overrides/$HPC_TARGETS_FILENAME"
+          hpc_targets_file="environments/$ENVIRONMENT/overrides/$HPC_TARGETS_FILENAME"
           if [[ ! -f "$hpc_targets_file" ]]; then
             hpc_targets_file="defaults/$HPC_TARGETS_FILENAME"
             if [[ ! -f "$hpc_targets_file" ]]; then
@@ -304,4 +310,4 @@ jobs:
       - name: Delete temporary exchange directory on HPC system
         id: delete-temp-dir
         if: always() && steps.set-up-hpc-target.outcome == 'success'
-        run: ssh hpc 'rm -rfv ${{ env.TEMP_EXCHANGE_DIR_ON_HPC }}'
+        run: ssh hpc "rm -rfv $TEMP_EXCHANGE_DIR_ON_HPC"
