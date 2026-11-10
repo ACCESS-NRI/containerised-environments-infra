@@ -9,10 +9,9 @@ infra_scripts_dir="$REPO_PATH/infrastructure/scripts"
 
 # Fail if user-controlled values contain unsafe characters (prevents shell injection)
 # Also prevent path trasversals (e.g., `../mypath`) and empty values
-safe_re='^[A-Za-z0-9_][A-Za-z0-9_-.]*$'
 for var in MODULE_NAME MODULE_VERSION; do
-    if [[ ! "${!var}" =~ $safe_re ]]; then
-        echo "Error: invalid value for $var: ${!var}. It must match the regex pattern: $safe_re" >&2
+    if [[ ! "${!var}" =~ $SAFE_REGEX ]]; then
+        echo "Error: invalid value for $var: ${!var}. It must match the regex pattern: $SAFE_REGEX" >&2
         exit 1
     fi
 done

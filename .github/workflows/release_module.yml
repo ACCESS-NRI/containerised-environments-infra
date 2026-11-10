@@ -59,17 +59,17 @@ jobs:
         id: get-info
         env:
           DOWNLOAD_PATH: ${{steps.download-artifact.outputs.download-path}}
+          SAFE_REGEX: ${{ vars.SAFE_REGEX }}
         run: |
           deployment_info_json_path=$(find "$DOWNLOAD_PATH" -name 'deployment_info_*.json' | head -n 1)
           [[ -f "$deployment_info_json_path" ]] || { echo "::error::No deployment info JSON found."; exit 1; }
-          safe_re='^[A-Za-z0-9][A-Za-z0-9._-]*$'
           get() { jq -r "[.deployments[0].$1] | .[0] // empty" "$deployment_info_json_path"; }
           module_name=$(get module_name)
           module_version=$(get module_version)
           commit_sha=$(get commit_sha)
           hpc_name=$(get hpc_name)
           for v in "$module_name" "$module_version" "$hpc_name"; do
-            [[ "$v" =~ $safe_re ]] || { echo "::error::Invalid value in deployment info JSON."; exit 1; }
+            [[ "$v" =~ $SAFE_REGEX ]] || { echo "::error::Invalid value in deployment info JSON."; exit 1; }
           done
           [[ "$commit_sha" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::Invalid commit SHA in deployment info JSON."; exit 1; }
           {

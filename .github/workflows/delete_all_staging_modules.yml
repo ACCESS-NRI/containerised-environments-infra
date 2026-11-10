@@ -50,6 +50,7 @@ jobs:
       MODULE_TYPE: STABLE
       HPC_TARGET: ${{ matrix.hpc-target }}
       STARTED_AT: dummy_date
+      SAFE_REGEX: ${{ vars.SAFE_REGEX }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
