@@ -57,7 +57,7 @@ jobs:
         run: |
           safe_re='^[A-Za-z0-9_][A-Za-z0-9_-.]*$'
           if [[ ! "$ENVIRONMENT" =~ $safe_re ]]; then
-            echo "::error::'environment' name not valid: $ENVIRONMENT". It must match the regex pattern: $safe_re
+            echo "::error::Environment name not valid: $ENVIRONMENT. It must match the regex pattern: $safe_re"
             exit 1
           fi
           if [[ ! -d "environments/$ENVIRONMENT" ]]; then
@@ -65,7 +65,7 @@ jobs:
             exit 1
           fi
           if [[ ! "$VERSION" =~ $safe_re ]]; then
-            echo "::error::'version' name not valid: $VERSION". It must match the regex pattern: $safe_re
+            echo "::error::Version not valid: $VERSION. It must match the regex pattern: $safe_re
             exit 1
           fi
 
@@ -157,10 +157,15 @@ jobs:
           done
 
   deploy:
-    needs: [sanity_checks, approval-for-production-deployment, get-date, get-hpc-targets]
+    needs: 
+      - sanity_checks
+      - approval-for-production-deployment
+      - get-date
+      - get-hpc-targets
     runs-on: ubuntu-latest
-    #  Also run if approval-for-production-deployment is skipped (i.e., when inputs.production is false)
-    if: always() && !cancelled() && needs.approval-for-production-deployment.result != 'failure'
+    # Run also if approval-for-production-deployment is skipped (inputs.production is false)
+    # but don't run if any job fails or the workflow gets cancelled
+    if: always() && !failure() && !cancelled()
     concurrency:
       group: "${{ matrix.hpc-target }}-${{ inputs.environment }}-${{ inputs.version }}"
       cancel-in-progress: true
