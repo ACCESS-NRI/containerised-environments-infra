@@ -57,17 +57,28 @@ jobs:
       
       - name: Get info from deployment info JSON
         id: get-info
+        env:
+          DOWNLOAD_PATH: ${{steps.download-artifact.outputs.download-path}}
         run: |
-          deployment_info_json_path=$(find ${{steps.download-artifact.outputs.download-path}} -name 'deployment_info_*.json')
-          module_name=$(jq -r '.deployments[].module_name' "$deployment_info_json_path")
-          module_version=$(jq -r '.deployments[].module_version' "$deployment_info_json_path")
-          commit_sha=$(jq -r '.deployments[].commit_sha' "$deployment_info_json_path")
-          hpc_name=$(jq -r '.deployments[].hpc_name' "$deployment_info_json_path")
-          echo "module_name=$module_name" >> $GITHUB_OUTPUT
-          echo "module_version=$module_version" >> $GITHUB_OUTPUT
-          echo "commit_sha=$commit_sha" >> $GITHUB_OUTPUT
-          echo "hpc_name=$hpc_name" >> $GITHUB_OUTPUT
-          echo "deployment_info_json_path=$deployment_info_json_path" >> $GITHUB_OUTPUT
+          deployment_info_json_path=$(find "$DOWNLOAD_PATH" -name 'deployment_info_*.json' | head -n 1)
+          [[ -f "$deployment_info_json_path" ]] || { echo "::error::No deployment info JSON found."; exit 1; }
+          safe_re='^[A-Za-z0-9][A-Za-z0-9._-]*$'
+          get() { jq -r "[.deployments[0].$1] | .[0] // empty" "$deployment_info_json_path"; }
+          module_name=$(get module_name)
+          module_version=$(get module_version)
+          commit_sha=$(get commit_sha)
+          hpc_name=$(get hpc_name)
+          for v in "$module_name" "$module_version" "$hpc_name"; do
+            [[ "$v" =~ $safe_re ]] || { echo "::error::Invalid value in deployment info JSON."; exit 1; }
+          done
+          [[ "$commit_sha" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::Invalid commit SHA in deployment info JSON."; exit 1; }
+          {
+            echo "module_name=$module_name"
+            echo "module_version=$module_version"
+            echo "commit_sha=$commit_sha"
+            echo "hpc_name=$hpc_name"
+            echo "deployment_info_json_path=$deployment_info_json_path"
+          } >> "$GITHUB_OUTPUT"
 
       # To sign commits and tags
       - name: Import GPG settings
@@ -87,12 +98,14 @@ jobs:
         env:
           MODULE_NAME_VERSION: ${{steps.get-info.outputs.module_name}}/${{steps.get-info.outputs.module_version}}
           HPC_NAME: ${{steps.get-info.outputs.hpc_name}}
+          COMMIT_SHA: ${{steps.get-info.outputs.commit_sha}}
+          WORKFLOW_NAME: ${{ github.workflow }}
         run: |
           tag_name="${HPC_NAME}_${MODULE_NAME_VERSION}"
           tag_message="Released $MODULE_NAME_VERSION module on $HPC_NAME. "
-          tag_message+="Tag automatically created by the ${{ github.workflow }} workflow."
+          tag_message+="Tag automatically created by the $WORKFLOW_NAME workflow."
           git config --list
-          git tag "$tag_name" ${{steps.get-info.outputs.commit_sha}} -m "$tag_message"
+          git tag "$tag_name" "$COMMIT_SHA" -m "$tag_message"
           git push origin "$tag_name"
           echo "tag_name=$tag_name" >> $GITHUB_OUTPUT
 

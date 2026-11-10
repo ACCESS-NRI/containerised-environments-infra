@@ -47,7 +47,28 @@ jobs:
       STAGING: ${{ inputs.staging }}
       PRODUCTION: ${{ inputs.production }}
       VERSION: ${{ inputs.version }}
+      ENVIRONMENT: ${{ inputs.environment }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      # Inputs end up in shell code on the HPC, so only allow safe characters
+      - name: Validate environment and version inputs
+        run: |
+          safe_re='^[A-Za-z0-9_][A-Za-z0-9_-.]*$'
+          if [[ ! "$ENVIRONMENT" =~ $safe_re ]]; then
+            echo "::error::'environment' name not valid: $ENVIRONMENT". It must match the regex pattern: $safe_re
+            exit 1
+          fi
+          if [[ ! -d "environments/$ENVIRONMENT" ]]; then
+            echo "::error::Environment '$ENVIRONMENT' not found in this repo's 'environments/' directory.
+            exit 1
+          fi
+          if [[ ! "$VERSION" =~ $safe_re ]]; then
+            echo "::error::'version' name not valid: $VERSION". It must match the regex pattern: $safe_re
+            exit 1
+          fi
+
       # Check that if staging or production is true, then version must be provided
       - name: Check version input  
         run: |
