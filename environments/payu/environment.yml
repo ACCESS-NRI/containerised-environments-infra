@@ -18,3 +18,4 @@ dependencies:
   - experiment-runner
   - mnctools
   - addmeta
+  - hpcpy==0.9.0 # Temp pin - https://github.com/payu-org/payu/issues/900
