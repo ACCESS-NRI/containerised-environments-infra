@@ -50,6 +50,7 @@ jobs:
       MODULE_TYPE: STABLE
       HPC_TARGET: ${{ matrix.hpc-target }}
       STARTED_AT: dummy_date
+      SAFE_REGEX: ${{ vars.SAFE_REGEX }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -57,8 +58,7 @@ jobs:
       # We set this here, because the runner.debug context is not available within the job env
       - name: Set debug mode
         run: |
-          # echo "CONTAINERISED_ENVS_DEBUG=${{ runner.debug }}" >> $GITHUB_ENV
-          echo "CONTAINERISED_ENVS_DEBUG=1" >> $GITHUB_ENV
+          echo "CONTAINERISED_ENVS_DEBUG=${{ runner.debug }}" >> $GITHUB_ENV
       
       - name: Set up HPC target
         uses: ./.github/actions/set_up_hpc_target
@@ -73,7 +73,7 @@ jobs:
     
       - name: Delete all staging files
         run: |
-          ssh ${{ secrets.USER }}@${{ secrets.HOST }} -i ${{ steps.set-up-hpc-target.outputs.private-key-path }} /bin/bash <<EOT
+          ssh hpc <<EOT
             set -euo pipefail
             if [[ ${CONTAINERISED_ENVS_DEBUG:-0} == 1 ]]; then
               set -x
@@ -81,13 +81,10 @@ jobs:
             # Set configuration environment
             source '$REPO_PATH/$ENV_CONFIG_FILENAME'
             # Delete staging files
-            "\$INFRA_SCRIPTS_DIR/delete_staging_files.sh" --all
+            "/$INFRA_SCRIPTS_DIR/delete_staging_files.sh" --all
           EOT
     
       - name: Delete repository on HPC system
         if: always() && steps.set-up-hpc-target.outcome == 'success'
         run: |
-          ssh ${{ secrets.USER }}@${{ secrets.HOST }} \
-            -i ${{ steps.set-up-hpc-target.outputs.private-key-path }} /bin/bash <<EOT
-            rm -rf '$REPO_PATH'
-          EOT
+          ssh hpc "rm -rf $REPO_PATH"

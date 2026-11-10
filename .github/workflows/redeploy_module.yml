@@ -30,6 +30,12 @@ jobs:
       pull-requests: write
       actions: write
     steps:
+      - name: React to Comment with Eyes (👀)
+        uses: access-nri/actions/.github/actions/react-to-comment@main
+        with:
+          token: ${{ github.token }}
+          reaction: eyes
+
       - name: Check commenter permissions
         id: check-permissions
         uses: access-nri/actions/.github/actions/commenter-permission-check@main
@@ -37,6 +43,12 @@ jobs:
           # This means that commenters who use `!redeploy` must have at least `write` perms
           # in the repository.
           minimum-permission: write
+
+      - name: Exit if no write permissions
+        if: steps.check-permissions.outputs.has-permission == 'false'
+        run: |
+          echo "::error::User ${{ github.event.comment.user.login }} doesn't have 'write' permission on ${{ github.repository }}, environment redeployment not allowed"
+          exit 1
     
       - name: Get latest deployment run
         id: get-latest-run
@@ -79,6 +91,25 @@ jobs:
           gh run rerun ${{ steps.get-latest-run.outputs.run-id }} \
             --repo ${{ github.repository }}
       
+      - name: Set reaction
+        id: set-reaction
+        run: |
+          if (
+            [[ '${{ steps.check-permissions.outputs.has-permission }}' == 'false' ]] || 
+            [[ '${{ steps.get-latest-run.outputs.failure }}' != '' ]]
+          ); then
+            reaction='-1'
+          else
+            reaction=rocket
+          fi
+          echo reaction=$reaction >> "$GITHUB_OUTPUT"
+      
+      - name: React to Comment
+        uses: access-nri/actions/.github/actions/react-to-comment@main
+        with:
+          token: ${{ github.token }}
+          reaction: ${{ steps.set-reaction.outputs.reaction }}
+        
       # Set a message to append to the comment if the commenter doesn't have write permissions
       - name: Set no-write-permissions message
         if: steps.check-permissions.outputs.has-permission == 'false'
@@ -148,7 +179,7 @@ jobs:
             echo '>'
             echo "> _Comment modified by [this](${THIS_WORKFLOW_URL}) ${{ github.workflow }} workflow run._"
           } > "$MSG_FILE"
-
+    
       # Append a message to the commenter to notify them of the outcome:
       - name: Append to commenter message
         uses: access-nri/actions/.github/actions/comment@main
@@ -156,22 +187,3 @@ jobs:
           url: ${{ github.event.comment.html_url }}
           append: true
           message-file: ${{ env.MSG_FILE }}
-      
-      - name: Set reaction
-        id: set-reaction
-        run: |
-          if (
-            [[ '${{ steps.check-permissions.outputs.has-permission }}' == 'false' ]] || 
-            [[ '${{ steps.get-latest-run.outputs.failure }}' != '' ]]
-          ); then
-            reaction='-1'
-          else
-            reaction=rocket
-          fi
-          echo reaction=$reaction >> "$GITHUB_OUTPUT"
-      
-      - name: React to Comment
-        uses: access-nri/actions/.github/actions/react-to-comment@main
-        with:
-          token: ${{ github.token }}
-          reaction: ${{ steps.set-reaction.outputs.reaction }}

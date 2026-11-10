@@ -47,21 +47,23 @@ runs:
     - name: Set jinja template
       id: set-jinja-template
       shell: bash
+      env:
+        MESSAGE_TYPE: ${{ inputs.message-type }}
       run: |
-        if [[ '${{ inputs.message-type }}' == summary ]]; then
+        if [[ "$MESSAGE_TYPE" == summary ]]; then
           jinja_template_file=set_message_summary.j2
-        elif [[ '${{ inputs.message-type }}' == pr-init ]]; then
+        elif [[ "$MESSAGE_TYPE" == pr-init ]]; then
           jinja_template_file=set_message_pr_init.j2
-        elif [[ '${{ inputs.message-type }}' == pr-update ]]; then
+        elif [[ "$MESSAGE_TYPE" == pr-update ]]; then
           jinja_template_file=set_message_pr_update.j2
-        elif [[ '${{ inputs.message-type }}' == pr-update-failure ]]; then
+        elif [[ "$MESSAGE_TYPE" == pr-update-failure ]]; then
           jinja_template_file=set_message_pr_update_failure.j2
-        elif [[ '${{ inputs.message-type }}' == pr-cancelled ]]; then
+        elif [[ "$MESSAGE_TYPE" == pr-cancelled ]]; then
           jinja_template_file=set_message_pr_cancelled.j2
-        elif [[ '${{ inputs.message-type }}' == gh-release ]]; then
+        elif [[ "$MESSAGE_TYPE" == gh-release ]]; then
           jinja_template_file=set_message_gh_release.j2
         else
-          echo "Invalid message type: ${{ inputs.message-type }}. Must be one of: summary, pr-init, pr-update, pr-update-failure, pr-cancelled."
+          echo "Invalid message type: '$MESSAGE_TYPE'. Must be one of: summary, pr-init, pr-update, pr-update-failure, pr-cancelled, gh-release."
           exit 1
         fi
         echo "jinja-template-file=${{ github.workspace }}/.__action_set_message/infrastructure/jinja2_templates/$jinja_template_file" >> $GITHUB_OUTPUT
