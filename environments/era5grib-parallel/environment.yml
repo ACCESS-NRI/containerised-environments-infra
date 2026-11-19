@@ -6,4 +6,4 @@ channels:
 dependencies:
   - python=3.14
   - cdo
-  - era5grib-parallel==1.0
+  - era5grib-parallel==1.1.1
