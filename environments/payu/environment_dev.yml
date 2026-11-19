@@ -9,8 +9,6 @@ dependencies:
   - nco
   - pytest
   - xarray
-  - mule
-  - um2nc<2
   - accessnri::yamanifest
   - netcdf4=*=nompi_*
   - experiment-generator
