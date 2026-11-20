@@ -225,6 +225,7 @@ jobs:
       - name: Deploy staging environment
         if: inputs.staging
         id: deploy-staging
+        # The hpc SSH alias is set in the setup-ssh action called in the set_up_hpc_target action.
         run: |
           ssh hpc <<'HPC_SSH_EOF'
             set -euo pipefail
@@ -243,6 +244,7 @@ jobs:
       - name: Deploy production environment
         if: inputs.production
         id: deploy-production
+        # The hpc SSH alias is set in the setup-ssh action called in the set_up_hpc_target action.
         run: |
           ssh hpc <<'HPC_SSH_EOF'
             set -euo pipefail
@@ -262,6 +264,7 @@ jobs:
       - name: Get files from temporary exchange directory on HPC system
         if: always() && !cancelled() && steps.set-up-hpc-target.outcome == 'success'
         id: get-files-from-hpc
+        # The hpc SSH alias is set in the setup-ssh action called in the set_up_hpc_target action.
         run: |
           set -euo pipefail
           if [[ ${CONTAINERISED_ENVS_DEBUG:-0} == 1 ]]; then
@@ -318,6 +321,7 @@ jobs:
         # Delete staging files if we deploy to production, or if there are no deployments 
         # (e.g., closed PR)
         if: inputs.production == true || inputs.staging == false
+        # The hpc SSH alias is set in the setup-ssh action called in the set_up_hpc_target action.
         run: |
           ssh hpc <<'HPC_SSH_EOF'
             set -euo pipefail
@@ -338,4 +342,5 @@ jobs:
       - name: Delete temporary exchange directory on HPC system
         id: delete-temp-dir
         if: always() && steps.set-up-hpc-target.outcome == 'success'
+        # The hpc SSH alias is set in the setup-ssh action called in the set_up_hpc_target action.
         run: ssh hpc "rm -rfv $TEMP_EXCHANGE_DIR_ON_HPC"
