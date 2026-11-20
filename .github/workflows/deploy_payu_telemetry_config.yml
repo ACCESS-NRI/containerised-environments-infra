@@ -168,9 +168,10 @@ jobs:
         private-key-passphrase: ${{ env.SSH_KEY_PASSPHRASE }}
     
     - name: Deploy telemetry config
+      # The hpc SSH alias is set in the setup-ssh action called in the set_up_hpc_target action.
       run: |
         # Create payu telemetry config parent directory
-        ssh hpc 'mkdir -p $(dirname ${{env.PAYU_TELEMETRY_CONFIG_PATH}})'
+        ssh hpc "mkdir -p $(dirname "$PAYU_TELEMETRY_CONFIG_PATH")"
         # Deploy telemetry config to HPC target
         rsync \
           -avh \
@@ -180,6 +181,7 @@ jobs:
           "$TELEMETRY_CONFIG_NAME" hpc-data:"$PAYU_TELEMETRY_CONFIG_PATH"
 
     - name: Set permissions
+      # The hpc SSH alias is set in the setup-ssh action called in the set_up_hpc_target action.
       run: |
         ssh hpc << 'HPC_SSH_EOF'
           set -euo pipefail
