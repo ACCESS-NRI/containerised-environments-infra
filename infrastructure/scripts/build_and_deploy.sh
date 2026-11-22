@@ -72,7 +72,7 @@ container_image=$(
     "No container image '${REPO_CONTAINER_IMAGE_PATH#$DEFAULTS_DIR/}' found in the repository's defaults or environment overrides.
     To create it, run the 'build_container_image.yml' repository workflow."
 )
-copy_if_changed "$container_image" "$RUNTIME_CONTAINER_IMAGE_PATH"
+cp "$container_image" "$RUNTIME_CONTAINER_IMAGE_PATH"
 echo "Container image deployed to '$RUNTIME_CONTAINER_IMAGE_PATH'"
 
 ### CREATE ENVIRONMENT
@@ -162,7 +162,7 @@ mksquashfs "$env_path_truncated" "$TEMP_SQSH_FILE_PATH" \
     -no-exports -no-recovery -no-xattrs -noD -noI -processors 8
 
 # Deploy the squashfs file and set permissions
-copy_if_changed "$TEMP_SQSH_FILE_PATH" "$SQSH_FILE_PATH"
+cp "$TEMP_SQSH_FILE_PATH" "$SQSH_FILE_PATH"
 set_perms "$SQSH_FILE_PATH"
 echo "Squashfs file deployed to '$SQSH_FILE_PATH'"
 
