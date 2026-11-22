@@ -29,8 +29,9 @@ runs:
       shell: bash
       env:
         TZ: "Australia/Sydney"
+        IS_STABLE: ${{ inputs.is_stable }}
       run: |
-        dev_prefix=$([[ '${{ inputs.is_stable }}' == true ]] && echo '' || echo 'dev-')
+        dev_prefix=$([[ "$IS_STABLE" == true ]] && echo '' || echo 'dev-')
         date=$(date +%Y%m%dT%H%M%S)
         sha='${{ github.event.pull_request.head.sha || github.sha }}'
         short_sha=${sha::7}

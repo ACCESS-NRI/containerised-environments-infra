@@ -17,11 +17,13 @@ on:
 jobs:
   log_information:
     runs-on: ubuntu-latest
+    env:
+      ENVIRONMENT: ${{ inputs.environment }}
     steps:
       - name: Log information
         run: |
-          echo '::notice::Workflow run from `${{ github.ref_name }}`.'
-          echo '::notice::Module to be released: `${{ inputs.environment }}/dev`.'
+          echo '::notice::Workflow run from branch: ${{ github.ref_name }}'
+          echo "::notice::Module to be released: $ENVIRONMENT/dev"
 
   set_version:
     name: Set version
