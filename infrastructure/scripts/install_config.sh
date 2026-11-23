@@ -145,7 +145,7 @@ if [[ "${IS_DEPLOYMENT:-true}" == true ]]; then
     # Path to the launcher script
     export LAUNCHER_SCRIPT_PATH="$ENV_BIN_DIR/$LAUNCHER_SCRIPT_NAME"
     # Path to the defaults launcher script within the repository
-    export REPO_LAUNCHER_SCRIPT_PATH="$default_scripts_dir/$LAUNCHER_SCRIPT_NAME"
+    export REPO_LAUNCHER_SCRIPT_PATH="$default_scripts_dir/launcher.j2"
 
     # Path of the deployment post script
     export DEPLOYMENT_POST_SCRIPT_PATH="$default_scripts_dir/deployment_post_script.sh"
