@@ -191,3 +191,24 @@ function get_overrides_or_defaults() {
     fi
     printf '%s' "$file"
 }
+
+function render_j2_template() {
+    # Render a jinja2 template file using environment variables as the context.
+    # It takes two arguments: the path to the template file and the path to the output file.
+    # The rendered output is written to the specified output file.
+    local template_file output_file
+    template_file="$1"
+    output_file="$2"
+    
+    if [[ ! -f "$template_file" ]]; then
+        echo "Template file '$template_file' not found." >&2
+        return 1
+    fi
+    
+    # Use the jinja2 environment to render the jinja2 template
+    "$MAMBA_EXE" run \
+    --prefix $J2_ENV \
+    python "$INFRA_SCRIPTS_DIR/render_jinja2_template.py" \
+    "$template_file" \
+    "$output_file"
+}

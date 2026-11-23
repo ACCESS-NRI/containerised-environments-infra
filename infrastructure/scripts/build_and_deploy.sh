@@ -66,6 +66,16 @@ create_hpc_target_deployment_info() {
 # We use the TRAP_PRIORITY_BEFORE_LAST trap priority so this step runs right before any cleanup steps (that use TRAP_PRIORITY_LAST)
 register_exit_trap_cmd create_hpc_target_deployment_info "$TRAP_PRIORITY_BEFORE_LAST"
 
+### CREATE JINJA2 ENVIRONMENT 
+# Create a jinja2 environment for build-time templating
+"$MAMBA_EXE" create \
+    -y \
+    --prefix "$J2_ENV" \
+    --no-rc \
+    -c conda-forge \
+    -c nodefaults \
+    jinja2
+
 ### UPDATE CONTAINER IMAGE
 container_image=$(
     get_overrides_or_defaults "$REPO_CONTAINER_IMAGE_PATH" \
@@ -171,7 +181,7 @@ env_activation_script=$(
     get_overrides_or_defaults "$REPO_ACTIVATION_SCRIPT_PATH" \
     "No environment activation script '${REPO_ACTIVATION_SCRIPT_PATH#$DEFAULTS_DIR/}' found in the repository's defaults or environment overrides."
 )
-copy_if_changed_with_replace "$env_activation_script" "$ACTIVATION_SCRIPT_PATH"
+render_j2_template "$env_activation_script" "$ACTIVATION_SCRIPT_PATH"
 set_perms "$ACTIVATION_SCRIPT_PATH"
 echo "Environment activation script deployed to '$ACTIVATION_SCRIPT_PATH'"
 add_to_files_manifest "$ACTIVATION_SCRIPT_PATH"
@@ -198,12 +208,12 @@ create_modulerc() {
     # _exit_status variable is initialised within the register_exit_trap_cmd function
     if [[ "$_exit_status" == 0 ]]; then
         # modulefile
-        copy_if_changed_with_replace "$modulefile" "$MODULE_FILE_PATH"
+        render_j2_template "$modulefile" "$MODULE_FILE_PATH"
         set_perms "$MODULE_FILE_PATH"
         echo "Module file deployed to '$MODULE_FILE_PATH'"
         add_to_files_manifest "$MODULE_FILE_PATH"
         # .modulerc
-        copy_if_changed_with_replace "$modulerc" "$MODULERC_FILE_PATH"
+        render_j2_template "$modulerc" "$MODULERC_FILE_PATH"
         set_perms "$MODULERC_FILE_PATH"
         echo "Module .modulerc file deployed to '$MODULERC_FILE_PATH'"
     fi
@@ -218,7 +228,7 @@ launcher_script=$(
 )
 
 # Deploy launcher script and set permissions
-copy_if_changed_with_replace "$launcher_script" "$LAUNCHER_SCRIPT_PATH"
+render_j2_template "$launcher_script" "$LAUNCHER_SCRIPT_PATH"
 # Add execute permissions to the launcher script
 set_perms -x "$LAUNCHER_SCRIPT_PATH"
 echo "Launcher script deployed to '$LAUNCHER_SCRIPT_PATH'"

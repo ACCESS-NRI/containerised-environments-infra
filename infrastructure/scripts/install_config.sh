@@ -217,6 +217,8 @@ if [[ "${IS_DEPLOYMENT:-true}" == true ]]; then
         MAMBA_EXE="$mamba_temp_exe"
     fi
     echo "Using micromamba executable: $MAMBA_EXE"
+    # jinja2 environment for build-time templating
+    export J2_ENV="$TEMP_WORKING_DIR/jinja2_env"
     
     # Set ENV_PROMPT_MODIFIER
     export ENV_PROMPT_MODIFIER="${ENV_PROMPT_MODIFIER:-"($MODULE_NAME/$MODULE_VERSION)"}"
