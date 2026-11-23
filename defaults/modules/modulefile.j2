@@ -1,21 +1,19 @@
+{# This jinja2 template is rendered within the build_and_deploy.sh script #}
 #%Module1.0
 
-# The double underscore variables within this file are replaced by the 'replace_dunder_variables'
-# function within the build.sh or deploy.sh scripts
-
 # Prevent loading multiple versions of this module at the same time
-conflict __MODULE_NAME__
+conflict {{ env["MODULE_NAME"] }}
 
 # Prepend environment bin directory (where all launcher symlinks are located) to PATH
-prepend-path PATH {__ENV_BIN_DIR__}
+prepend-path PATH { {{ env["ENV_BIN_DIR"] }} }
 
 # The following environment variables are also set in the internal environment activation script, but
 # we set them here as well so they can be also used outside of the internal environment 
 # (e.g., to change the PS1 after the module is loaded)
-setenv CONDA_PROMPT_MODIFIER {__ENV_PROMPT_MODIFIER__}
-setenv CONDA_PREFIX {__INTERNAL_ENV_DIR__}
+setenv CONDA_PROMPT_MODIFIER { {{ env["ENV_PROMPT_MODIFIER"] }} }
+setenv CONDA_PREFIX { {{ env["INTERNAL_ENV_DIR"] }} }
 
 # Log info about module version loaded
 if {[module-info mode load]} {
-    puts stderr {Loaded module __MODULE_NAME__/__MODULE_VERSION__}
+    puts stderr { Loaded module {{ env["MODULE_NAME"] }}/{{ env["MODULE_VERSION"] }} }
 }

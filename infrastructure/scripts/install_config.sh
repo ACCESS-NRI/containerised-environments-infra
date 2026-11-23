@@ -132,9 +132,9 @@ if [[ "${IS_DEPLOYMENT:-true}" == true ]]; then
     # Path to the default modules directory within the repository
     export REPO_MODULES_DIR="$DEFAULTS_DIR/modules"
     # Path to the default modulefile within the repository
-    export REPO_MODULE_FILE_PATH="$REPO_MODULES_DIR/modulefile"
+    export REPO_MODULE_FILE_PATH="$REPO_MODULES_DIR/modulefile.j2"
     # Path to the default .modulerc file within the repository
-    export REPO_MODULERC_FILE_PATH="$REPO_MODULES_DIR/.modulerc"
+    export REPO_MODULERC_FILE_PATH="$REPO_MODULES_DIR/.modulerc.j2"
 
 
     # Path to the bin directory where all the containerised environment binaries are stored
