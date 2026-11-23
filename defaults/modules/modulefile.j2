@@ -5,15 +5,15 @@
 conflict {{ env["MODULE_NAME"] }}
 
 # Prepend environment bin directory (where all launcher symlinks are located) to PATH
-prepend-path PATH { {{ env["ENV_BIN_DIR"] }} }
+prepend-path PATH {{ '{' }}{{ env["ENV_BIN_DIR"] }}{{ '}' }}
 
 # The following environment variables are also set in the internal environment activation script, but
 # we set them here as well so they can be also used outside of the internal environment 
 # (e.g., to change the PS1 after the module is loaded)
-setenv CONDA_PROMPT_MODIFIER { {{ env["ENV_PROMPT_MODIFIER"] }} }
-setenv CONDA_PREFIX { {{ env["INTERNAL_ENV_DIR"] }} }
+setenv CONDA_PROMPT_MODIFIER {{ '{' }}{{ env["ENV_PROMPT_MODIFIER"] }}{{ '}' }}
+setenv CONDA_PREFIX {{ '{' }}{{ env["INTERNAL_ENV_DIR"] }}{{ '}' }}
 
 # Log info about module version loaded
 if {[module-info mode load]} {
-    puts stderr { Loaded module {{ env["MODULE_NAME"] }}/{{ env["MODULE_VERSION"] }} }
+    puts stderr {Loaded module {{ env["MODULE_NAME"] }}/{{ env["MODULE_VERSION"] }}}
 }
