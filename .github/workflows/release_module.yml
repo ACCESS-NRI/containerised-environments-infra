@@ -28,7 +28,7 @@ jobs:
           echo "::notice::Module to be released: $ENVIRONMENT/$VERSION"
 
   deploy:
-    uses: ./.github/workflows/deploy_module.yml
+    uses: $/.github/workflows/deploy_module.yml
     with:
       environment: ${{ inputs.environment }}
       version: ${{ inputs.version }}
@@ -111,7 +111,7 @@ jobs:
 
       - name: Set gh-release message
         id: set-gh-release-message
-        uses: ./.github/actions/set_message
+        uses: $/.github/actions/set_message
         with:
           message-type: gh-release
           data-file: "${{steps.get-info.outputs.deployment_info_json_path}}"
