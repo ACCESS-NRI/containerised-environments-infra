@@ -61,7 +61,7 @@ jobs:
           echo "CONTAINERISED_ENVS_DEBUG=${{ runner.debug }}" >> $GITHUB_ENV
       
       - name: Set up HPC target
-        uses: ./.github/actions/set_up_hpc_target
+        uses: $/.github/actions/set_up_hpc_target
         id: set-up-hpc-target
         with:
           target-name: ${{ matrix.hpc-target }}

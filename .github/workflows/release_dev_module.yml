@@ -36,14 +36,14 @@ jobs:
 
       - name: Set version
         id: set-version
-        uses: ./.github/actions/set_version
+        uses: $/.github/actions/set_version
         with:
           is_stable: false
   
   deploy:
     name: Deploy DEVELOPMENT ${{ inputs.environment }} environment to PRODUCTION
     needs: [set_version]
-    uses: ./.github/workflows/deploy_module.yml
+    uses: $/.github/workflows/deploy_module.yml
     with:
       environment: "${{ inputs.environment }}"
       version: "${{ needs.set_version.outputs.version }}"

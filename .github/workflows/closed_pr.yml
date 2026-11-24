@@ -39,7 +39,7 @@ jobs:
 
       - name: Parse changed files
         id: changed-files
-        uses: ./.github/actions/parse_changed_files
+        uses: $/.github/actions/parse_changed_files
 
   get-environments:
     name: Get environments
@@ -97,7 +97,7 @@ jobs:
 
       - name: Set version
         id: set-version
-        uses: ./.github/actions/set_version
+        uses: $/.github/actions/set_version
         with:
           is_stable: false
   
@@ -110,7 +110,7 @@ jobs:
       fail-fast: false
       matrix:
         environment: ${{ fromJson(needs.get-environments.outputs.envs_to_deploy) }}
-    uses: ./.github/workflows/deploy_module.yml
+    uses: $/.github/workflows/deploy_module.yml
     with:
       environment: "${{ matrix.environment }}"
       version: "${{ needs.set_version.outputs.version }}"
@@ -127,7 +127,7 @@ jobs:
       fail-fast: false
       matrix:
         environment: ${{ fromJson(needs.get-environments.outputs.envs_to_delete) }}
-    uses: ./.github/workflows/deploy_module.yml
+    uses: $/.github/workflows/deploy_module.yml
     with:
       environment: "${{ matrix.environment }}"
       staging: false

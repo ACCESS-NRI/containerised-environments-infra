@@ -126,7 +126,7 @@ jobs:
       - name: Test set_message action for summary message
         if: matrix.render
         id: set-message-summary
-        uses: ./.github/actions/set_message
+        uses: $/.github/actions/set_message
         with:
           message-type: summary
           data-file: ${{ env.HPC_TARGET_DEPLOYMENT_INFO_JSON }}
@@ -143,7 +143,7 @@ jobs:
       - name: Test set_message action for GitHub release message
         if: matrix.render
         id: set-message-gh-release
-        uses: ./.github/actions/set_message
+        uses: $/.github/actions/set_message
         with:
           message-type: gh-release
           data-file: ${{ env.HPC_TARGET_DEPLOYMENT_INFO_JSON }}
@@ -214,14 +214,14 @@ jobs:
 
       - name: Create all_deployments_info JSON
         id: create-all-deployments-info
-        uses: ./.github/actions/create_all_deployments_info_json
+        uses: $/.github/actions/create_all_deployments_info_json
         with:
           started-at: "1992-04-05T23:55:00 GMT+1"
           hpc-target-deployment-info-json-dir: ${{ env.ARTIFACTS_FOLDER }}
     
       - name: Test set_message action with pr-update message
         id: set-pr-update-message
-        uses: ./.github/actions/set_message
+        uses: $/.github/actions/set_message
         with:
           message-type: pr-update
           data-file: "${{ steps.create-all-deployments-info.outputs.output-file }}"
@@ -244,11 +244,11 @@ jobs:
 
       - name: Create pr_init_info JSON
         id: create-pr-init-info
-        uses: ./.github/actions/create_pr_init_info_json
+        uses: $/.github/actions/create_pr_init_info_json
 
       - name: Test set_message action with pr-init message
         id: set-pr-init-message
-        uses: ./.github/actions/set_message
+        uses: $/.github/actions/set_message
         with:
           message-type: pr-init
           data-file: "${{ steps.create-pr-init-info.outputs.output-file }}"
@@ -263,7 +263,7 @@ jobs:
       
       - name: Test set_message action with pr-cancelled message
         id: set-pr-cancelled-message
-        uses: ./.github/actions/set_message
+        uses: $/.github/actions/set_message
         with:
           message-type: pr-cancelled
           data-file: "${{ steps.create-pr-init-info.outputs.output-file }}"
@@ -278,7 +278,7 @@ jobs:
       
       - name: Test set_message action with pr-update-failure message
         id: set-pr-update-failure-message
-        uses: ./.github/actions/set_message
+        uses: $/.github/actions/set_message
         with:
           message-type: pr-update-failure
           data-file: "${{ steps.create-pr-init-info.outputs.output-file }}"

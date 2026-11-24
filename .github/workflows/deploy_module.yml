@@ -212,7 +212,7 @@ jobs:
       # - GH_ENV_EXPORT_SCRIPT: path on the HPC target of the bash script sourced to export variables
       #   from the GitHub runner environment
       - name: Set up HPC target
-        uses: ./.github/actions/set_up_hpc_target
+        uses: $/.github/actions/set_up_hpc_target
         id: set-up-hpc-target
         with:
           target-name: ${{ matrix.hpc-target }}
@@ -299,7 +299,7 @@ jobs:
         # We always run this if the deployment-info-json-sanity-check step succeeds.
         if: always() && !cancelled() && steps.deployment-info-json-sanity-check.outcome == 'success'
         id: set-message-summary
-        uses: ./.github/actions/set_message
+        uses: $/.github/actions/set_message
         with:
           message-type: summary
           data-file: ${{ env.DEPLOYMENT_INFO_JSON_ON_GH }}
