@@ -4,7 +4,7 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
-  - python>3.10,<3.11 # python3.10.0 is not compatible with pytest/9.2.0
+  - python=3.12
   - accessnri::payu==1.4.0
   - f90nml
   - nco
@@ -18,4 +18,4 @@ dependencies:
   - experiment-runner
   - mnctools
   - addmeta
-  - hpcpy==0.9.0 # Temp pin - https://github.com/payu-org/payu/issues/900
+  - hpcpy
