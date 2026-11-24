@@ -69,9 +69,6 @@ In this folder add:
 ### STABLE modules for PRODUCTION
 The version of a STABLE module for PRODUCTION can have any structure (e.g., `1.2.0`, `myver`, `2026.01.0_main`). However, if the version follows the versioning of an internal "core" package (for example, the [payu](environments/payu/) module, which is versioned following the version of the internal `payu` package), an additional `..._X` portion should be appended to the "core" version, with `X` starting from `0` and increasing (e.g., `1.2.0_0`, `myversion_2`). This allows multiple versions of the module with the same "core" package version to be released.
 
-When using this `..._X` versioning scheme, an override for the `.modulerc` file should also be added to the environment folder, so that the latest `..._X` version is automatically detected and loaded.
-This can be copied from the [`payu` environment `.modulerc` override](https://github.com/ACCESS-NRI/containerised-environments-infra/blob/main/environments/payu/overrides/modules/.modulerc).
-
 ### DEVELOPMENT modules for PRODUCTION
 The version of DEVELOPMENT modules is automatically set and includes the date and commit hash of the release (e.g., `dev-20260916T090458-9423ec0`). In addition to loading these modules with their full version specifier (e.g., `module load myenv/dev-20260916T090458-9423ec0`), the latest DEVELOPMENT module can be loaded using the `dev` specifier: `module load myenv/dev`.
 The `dev` pointer always points to the latest DEVELOPMENT module, allowing you to continuously update and test new potential release candidates. Existing DEVELOPMENT modules remain available even when a new one is released and the `dev` pointer is updated.
