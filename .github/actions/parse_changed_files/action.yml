@@ -53,7 +53,7 @@ runs:
       with:
         predicate-quantifier: 'every'
         list-files: json
-        filters: $/.github/actions/parse_changed_files/filters.yml
+        filters: ./.github/actions/parse_changed_files/filters.yml
     
     - name: Set outputs
       id: set-outputs
