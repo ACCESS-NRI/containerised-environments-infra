@@ -61,7 +61,7 @@ create_hpc_target_deployment_info() {
     # Create the HPC target deployment info JSON
     source "$INFRA_SCRIPTS_DIR/create_hpc_target_deployment_info_json.sh" \
         "$DEPLOYMENT_INFO_JSON_ON_HPC" \
-        --key env_lock "$ENV_LOCK"
+        --key env_lock "${ENV_LOCK:-}"
 }
 # We use the TRAP_PRIORITY_BEFORE_LAST trap priority so this step runs right before any cleanup steps (that use TRAP_PRIORITY_LAST)
 register_exit_trap_cmd create_hpc_target_deployment_info "$TRAP_PRIORITY_BEFORE_LAST"
