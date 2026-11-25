@@ -1,9 +1,9 @@
-{# This jinja2 template is rendered within the build_and_deploy.sh script -#}
+{#- This jinja2 template is rendered within the build_and_deploy.sh script -#}
 #%Module1.0
 
-{% if env["MODULE_TYPE"] == "DEVELOPMENT" %}
+{% if env["MODULE_TYPE"] == "DEVELOPMENT" -%}
 module-version {{ env["MODULE_NAME"] }}/{{ env["MODULE_VERSION"] }} dev
-{% else %}
+{% else -%}
 module-version {{ env["MODULE_NAME"] }}/{{ env["MODULE_VERSION"] }} default
 
 # Set aliases for `<no_num_version>_NUM` version formats.
@@ -50,4 +50,4 @@ foreach modfile [glob -nocomplain -tails -directory $modroot -- *] {
 dict for {no_num_version num} $all_versions {
     module-version {{ env["MODULE_NAME"] }}/${no_num_version}_${num} $no_num_version
 }
-{% endif %}
+{% endif -%}
