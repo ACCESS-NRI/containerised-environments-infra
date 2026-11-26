@@ -50,7 +50,7 @@ jobs:
       ENVIRONMENT: ${{ inputs.environment }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # Inputs end up in shell code on the HPC, so only allow safe characters
       - name: Validate environment and version inputs
@@ -121,7 +121,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       
       - name: Get HPC targets
         id: get-targets
@@ -196,7 +196,7 @@ jobs:
       SAFE_REGEX: ${{ vars.SAFE_REGEX }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       
       - name: Set debug mode
         # Set the debug logs when the debug mode is set for the runners
