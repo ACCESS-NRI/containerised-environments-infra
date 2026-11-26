@@ -57,7 +57,7 @@ jobs:
       - name: Sanity check on deployment
         run: |
           if [[ "$DEPLOYMENT" != true ]]; then
-            echo ::notice::No deployment-related changes found. Skipping deployment to STAGING. For more information, check the `deployment` filter in the `.github/actions/parse_changed_files/filters.yml` file.
+            echo '::notice::No deployment-related changes found. Skipping deployment to STAGING. For more information, check the `deployment` filter in the `.github/actions/parse_changed_files/filters.yml` file.'
           fi
       
       # Since we have the built container images within the repos, and we automatically build them
