@@ -1,0 +1,23 @@
+{#- This jinja2 template is rendered within the build_and_deploy.sh script -#}
+env_path='{{ env["INTERNAL_ENV_DIR"] }}'
+env_bin_path='{{ env["INTERNAL_ENV_BIN_DIR"] }}'
+
+# Prepend path with continerised environment bin directory
+export PATH="$env_bin_path:$PATH"
+# Set CONDA_DEFAULT_ENV
+export CONDA_DEFAULT_ENV="$env_path"
+# Set CONDA_PREFIX
+export CONDA_PREFIX="$env_path"
+# Set CONDA_PROMPT_MODIFIER
+export CONDA_PROMPT_MODIFIER='{{ env["ENV_PROMPT_MODIFIER"] }}'
+
+# Cylc-model-telemetry specific environment variables
+export ENV_LAUNCHER_SCRIPT_PATH='{{ env["LAUNCHER_SCRIPT_PATH"] }}'
+export CYLC_MODEL_TELEMETRY_CONFIG_PATH='{{ env["CYLC_MODEL_TELEMETRY_CONFIG_PATH"] }}'
+export CYLC_MODEL_TELEMETRY_ENV_VERSION='{{ env["MODULE_VERSION"] }}'
+
+for file in "$env_path"/etc/conda/activate.d/*.sh; do
+    if [ -r "$file" ]; then
+        . "$file"
+    fi
+done
