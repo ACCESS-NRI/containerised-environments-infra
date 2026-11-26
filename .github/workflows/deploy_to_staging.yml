@@ -52,12 +52,15 @@ jobs:
     env:
       DEPLOYMENT: ${{ needs.parse_changed_files.outputs.deployment }}
       CONTAINERS: ${{ needs.parse_changed_files.outputs.containers }}
+      FILTERS_URL: ${{ github.server_url }}/${{ github.repository }}/blob/${{github.sha}}/.github/actions/parse_changed_files/filters.yml
     steps:
       # We only want to trigger the deployment if the changes involve paths in the `deployment` filter.
       - name: Sanity check on deployment
+        env:
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           if [[ "$DEPLOYMENT" != true ]]; then
-            echo '::notice::No deployment-related changes found. Skipping deployment to STAGING. For more information, check the `deployment` filter in the `.github/actions/parse_changed_files/filters.yml` file.'
+            echo "::notice::No deployment-related changes found. Skipping deployment to STAGING. For more information, check the \`deployment\` filter in the filters file: $FILTERS_URL"
           fi
       
       # Since we have the built container images within the repos, and we automatically build them
