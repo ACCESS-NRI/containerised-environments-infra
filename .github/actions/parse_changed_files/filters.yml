@@ -1,13 +1,16 @@
+deployment:
+  - '{infrastructure,environments,defaults,.github/actions}/**'
+  - '!infrastructure/jinja2_templates/**'
+  - '!defaults/container/**'
+  - '.github/workflows/deploy_module.yml'
+  - '.github/workflows/deploy_to_staging.yml'
+  - '!.github/actions/set_message/**'
+  - 'deployment_filters.yml'
 containers:
-  - '{defaults/container/*,environments/*/overrides/container/*}'
-non_containers:
-  - '{.github,defaults,environments,infrastructure}/**'
-  - '!{defaults/container/*,environments/*/overrides/container/*}'
-dev_envs:
+  - 'defaults/container/**'
+  - 'environments/*/overrides/container/**'
+dev_envs: &dev_envs
   - 'environments/*/environment_dev.yml'
 stable_envs:
   - 'environments/**'
-  - '!{environments/*/environment_dev.yml,environments/*/overrides/container/container.def}'
-non_envs:
-  - '{.github,defaults,infrastructure}/**'
-  - '!defaults/container/*'
+  - '!*dev_envs'
