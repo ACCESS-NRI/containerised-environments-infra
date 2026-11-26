@@ -166,6 +166,16 @@ copy_if_changed "$TEMP_SQSH_FILE_PATH" "$SQSH_FILE_PATH"
 set_perms "$SQSH_FILE_PATH"
 echo "Squashfs file deployed to '$SQSH_FILE_PATH'"
 
+# Deploy env activation script
+env_activation_script=$(
+    get_overrides_or_defaults "$REPO_ACTIVATION_SCRIPT_PATH" \
+    "No environment activation script '${REPO_ACTIVATION_SCRIPT_PATH#$DEFAULTS_DIR/}' found in the repository's defaults or environment overrides."
+)
+copy_if_changed_with_replace "$env_activation_script" "$ACTIVATION_SCRIPT_PATH"
+set_perms "$ACTIVATION_SCRIPT_PATH"
+echo "Environment activation script deployed to '$ACTIVATION_SCRIPT_PATH'"
+add_to_files_manifest "$ACTIVATION_SCRIPT_PATH"
+
 ### DEPLOY MODULE FILES
 echo 'Creating module files...'
 
@@ -173,11 +183,6 @@ echo 'Creating module files...'
 modulefile=$(
     get_overrides_or_defaults "$REPO_MODULE_FILE_PATH" \
     "No modulefile '${REPO_MODULE_FILE_PATH#$DEFAULTS_DIR/}' found in the repository's defaults or environment overrides."
-)
-# Environment activation script
-env_activation_script=$(
-    get_overrides_or_defaults "$REPO_ACTIVATION_SCRIPT_PATH" \
-    "No environment activation script '${REPO_ACTIVATION_SCRIPT_PATH#$DEFAULTS_DIR/}' found in the repository's defaults or environment overrides."
 )
 # .modulerc
 modulerc=$(
@@ -192,11 +197,6 @@ modulerc=$(
 create_modulerc() {
     # _exit_status variable is initialised within the register_exit_trap_cmd function
     if [[ "$_exit_status" == 0 ]]; then
-        # env activation script
-        copy_if_changed_with_replace "$env_activation_script" "$ACTIVATION_SCRIPT_PATH"
-        set_perms "$ACTIVATION_SCRIPT_PATH"
-        echo "Environment activation script deployed to '$ACTIVATION_SCRIPT_PATH'"
-        add_to_files_manifest "$ACTIVATION_SCRIPT_PATH"
         # modulefile
         copy_if_changed_with_replace "$modulefile" "$MODULE_FILE_PATH"
         set_perms "$MODULE_FILE_PATH"
