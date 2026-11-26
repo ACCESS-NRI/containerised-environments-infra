@@ -72,7 +72,7 @@ jobs:
       HPC_TARGET_DEPLOYMENT_INFO_JSON: ${{ github.workspace }}/${{ matrix.name }}.json
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       
       - name: Create optional keys
         if: matrix.success == 'true'
@@ -189,7 +189,7 @@ jobs:
               target1_success
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       
       - name: Download artifacts
         id: download-artifacts
@@ -240,7 +240,7 @@ jobs:
         HPC_TARGET_DEPLOYMENT_INFO_JSON: ${{ github.workspace }}/pr_init_info.json
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Create pr_init_info JSON
         id: create-pr-init-info

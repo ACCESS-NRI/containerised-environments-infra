@@ -35,7 +35,7 @@ jobs:
       non_envs: ${{ steps.changed-files.outputs.non_envs }}
       non_containers: ${{ steps.changed-files.outputs.non_containers }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Parse changed files
         id: changed-files
@@ -93,7 +93,7 @@ jobs:
     if: needs.get-environments.outputs.envs_to_deploy != '[]'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set version
         id: set-version

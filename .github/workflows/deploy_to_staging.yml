@@ -40,7 +40,7 @@ jobs:
       non_envs: ${{ steps.changed-files.outputs.non_envs }}
       non_containers: ${{ steps.changed-files.outputs.non_containers }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Parse changed files
         id: changed-files
@@ -122,7 +122,7 @@ jobs:
     if: needs.get-environments.outputs.dev_envs != '[]'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set version
         id: set-version
@@ -140,7 +140,7 @@ jobs:
     if: needs.get-environments.outputs.stable_envs != '[]'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set version
         id: set-version
@@ -190,7 +190,7 @@ jobs:
     if: always() && !failure() && !cancelled() && (needs.set_version_dev.result == 'success' || needs.set_version_stable.result == 'success')
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Create pr_init_info JSON
         id: create-pr-init-info
@@ -224,7 +224,7 @@ jobs:
     if: always() && !cancelled() && needs.initialise_pr_comment.result == 'success'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Download all hpc target deployment info artifacts
         uses: actions/download-artifact@v8
@@ -275,7 +275,7 @@ jobs:
     if: cancelled() && needs.initialise_pr_comment.result == 'success'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Download pr-init-info JSON as artifact
         id: download-pr-init-info
