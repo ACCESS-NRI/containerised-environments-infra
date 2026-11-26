@@ -73,10 +73,8 @@ export APP_VERSION_DIR="$APP_DIR/$MODULE_VERSION"
 export FILES_MANIFEST_NAME=files_manifest.txt
 # Files manifest for easy module version deletion
 export FILES_MANIFEST_PATH="$APP_VERSION_DIR/$FILES_MANIFEST_NAME"
-# Name of the environment activation script that gets run when users load the module
-activation_script_name="env_activation.sh"
-# Path of the environment activation script that gets run when users load the module
-export ACTIVATION_SCRIPT_PATH="$APP_VERSION_DIR/$activation_script_name"
+# Path of the environment activation script that gets run when users load the module (on the HPC)
+export ACTIVATION_SCRIPT_PATH="$APP_VERSION_DIR/env_activation.sh"
 # Path of the default environment activation script within the repository
 export REPO_ACTIVATION_SCRIPT_PATH="$default_scripts_dir/env_activation.sh"
 
