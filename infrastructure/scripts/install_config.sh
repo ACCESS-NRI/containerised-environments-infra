@@ -76,7 +76,7 @@ export FILES_MANIFEST_PATH="$APP_VERSION_DIR/$FILES_MANIFEST_NAME"
 # Path of the environment activation script that gets run when users load the module (on the HPC)
 export ACTIVATION_SCRIPT_PATH="$APP_VERSION_DIR/env_activation.sh"
 # Path of the default environment activation script within the repository
-export REPO_ACTIVATION_SCRIPT_PATH="$default_scripts_dir/env_activation.j2"
+export REPO_ACTIVATION_SCRIPT_PATH="$default_scripts_dir/env_activation.sh.j2"
 
 ### Logic that runs only if a deployment is taking place
 if [[ "${IS_DEPLOYMENT:-true}" == true ]]; then
@@ -145,7 +145,7 @@ if [[ "${IS_DEPLOYMENT:-true}" == true ]]; then
     # Path to the launcher script
     export LAUNCHER_SCRIPT_PATH="$ENV_BIN_DIR/$LAUNCHER_SCRIPT_NAME"
     # Path to the defaults launcher script within the repository
-    export REPO_LAUNCHER_SCRIPT_PATH="$default_scripts_dir/launcher.j2"
+    export REPO_LAUNCHER_SCRIPT_PATH="$default_scripts_dir/launcher.sh.j2"
 
     # Path of the deployment post script
     export DEPLOYMENT_POST_SCRIPT_PATH="$default_scripts_dir/deployment_post_script.sh"
