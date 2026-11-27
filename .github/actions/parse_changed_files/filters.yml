@@ -1,3 +1,4 @@
+# Changed files for which a deployment should be triggered
 deployment:
   - '{infrastructure,environments,defaults,.github/actions}/**'
   - '!infrastructure/jinja2_templates/**'
@@ -6,11 +7,14 @@ deployment:
   - '.github/workflows/deploy_to_staging.yml'
   - '!.github/actions/set_message/**'
   - 'deployment_filters.yml'
+# Files related to containers
 containers:
   - 'defaults/container/**'
   - 'environments/*/overrides/container/**'
+# Files related to development environments
 dev_envs: &dev_envs
   - 'environments/*/environment_dev.yml'
+# Files related to stable environments
 stable_envs:
   - 'environments/**'
   - '!*dev_envs'
