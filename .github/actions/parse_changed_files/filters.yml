@@ -12,9 +12,9 @@ containers:
   - 'defaults/container/**'
   - 'environments/*/overrides/container/**'
 # Files related to development environments
-dev_envs: &dev_envs
+dev_envs:
   - 'environments/*/environment_dev.yml'
 # Files related to stable environments
 stable_envs:
   - 'environments/**'
-  - '!*dev_envs'
+  - '!environments/*/environment_dev.yml'
