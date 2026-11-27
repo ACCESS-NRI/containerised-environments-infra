@@ -4,8 +4,8 @@ deployment:
   - '!infrastructure/jinja2_templates/**'
   - '!defaults/container/**'
   - '.github/workflows/deploy_module.yml'
-  - '.github/workflows/deploy_to_staging.yml'
   - '!.github/actions/set_message/**'
+  - '!.github/actions/parse_changed_files/**'
   - 'deployment_filters.yml'
 # Files related to containers
 containers:
