@@ -4,10 +4,10 @@ description: |
   changed (e.g. container-related, environment-related, etc.) based on predefined filters.
   
   The predefined filters can be found in the filters.yml file:
-    - deployment: files changes for which a deployment should be triggered
+    - deployment: files that if changed should trigger a deployment
     - containers: files related to containers
-    - dev_envs: development environment definitions
-    - stable_envs: files in the `environments` folder with exception of development environment definitions
+    - dev_envs: files related to development environments
+    - stable_envs: files related to stable environments
 
 outputs:
   deployment:

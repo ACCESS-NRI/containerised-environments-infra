@@ -1,4 +1,4 @@
-# Changed files for which a deployment should be triggered
+# Files that if changed should trigger a deployment
 deployment:
   - '{infrastructure,environments,defaults,.github/actions}/**'
   - '!infrastructure/jinja2_templates/**'
