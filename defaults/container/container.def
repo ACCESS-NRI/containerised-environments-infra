@@ -40,6 +40,7 @@ Bootstrap: scratch
 
 %runscript
     #!/usr/bin/bash
+    # test
     # Source the environment activation script
     if [ -n "$ENV_ACTIVATION_SCRIPT" ]; then
         if [ -f "$ENV_ACTIVATION_SCRIPT" ]; then
