@@ -37,7 +37,6 @@ jobs:
       dev_envs_files: ${{ steps.changed-files.outputs.dev_envs_files }}
       stable_envs: ${{ steps.changed-files.outputs.stable_envs }}
       stable_envs_files: ${{ steps.changed-files.outputs.stable_envs_files }}
-      changes: ${{ steps.changed-files.outputs.changes }}
     steps:
       - uses: actions/checkout@v7
 

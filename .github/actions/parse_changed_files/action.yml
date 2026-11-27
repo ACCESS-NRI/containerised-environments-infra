@@ -28,9 +28,6 @@ outputs:
   stable_envs_files:
     value: ${{ steps.set-outputs.outputs.stable_envs_files }}
     description: A JSON Array of the changed stable environment definition file
-  changes:
-    value: ${{ steps.changed-files.outputs.changes }}
-    description: A JSON Array with the filter categories whose files were changed
 runs:
   using: "composite"
   steps:
@@ -51,7 +48,6 @@ runs:
         DEV_ENVS_FILES: ${{ steps.changed-files.outputs.dev_envs_files }}
         STABLE_ENVS: ${{ steps.changed-files.outputs.stable_envs }}
         STABLE_ENVS_FILES: ${{ steps.changed-files.outputs.stable_envs_files }}
-        CHANGES: ${{ steps.changed-files.outputs.changes }}
       shell: bash
       run: |
         echo "deployment=$DEPLOYMENT" >> $GITHUB_OUTPUT
@@ -60,4 +56,3 @@ runs:
         echo "dev_envs_files=$DEV_ENVS_FILES" >> $GITHUB_OUTPUT
         echo "stable_envs=$STABLE_ENVS" >> $GITHUB_OUTPUT
         echo "stable_envs_files=$STABLE_ENVS_FILES" >> $GITHUB_OUTPUT
-        echo "changes=$CHANGES" >> $GITHUB_OUTPUT
